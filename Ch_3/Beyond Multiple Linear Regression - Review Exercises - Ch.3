@@ -1,0 +1,60 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.3 - Distribution Theory
+
+
+Notes
+
+- wrote function to plot probability distributions
+- use of grid.arrange() to plot multiple graphs on page
+- use of probability theory to sum up cases - pg 77
+- manipulating rates dependent on the type of poisson process
+- using ` ` to name a variable if need to be specific. e.g `r = 1, lambda = 1` <- dgamma(x, 1, rate = 1)
+- in examining probability distirbutions always play with how the parameters vary to see properties of distributions.
+- dnorm() used more for generating plots - it is giving the value on the curve based on the given parameters.
+- equivalence of gather() to pivot_longer() (updated version of function)
+
+
+Guided Exercises
+
+1) Beta-binomial distribution
+
+a. Draw pi from the beta distribution with alpha = 4 and beta = 1.
+b. Generate an observation yi from a binomial distribution with n = 10 and p = pi.
+c. Repeat (a) and (b) 1,000 times (i = 1, . . . , 1000).
+d. Plot a histogram of these beta-binomial observations.
+
+Compare the histograms of the “plain old” binomial and beta-binomial distributions. How do their shapes, standard deviations,
+means, possible values, etc. compare?
+
+# Plain Binom
+
+binom_guid_obs = rbinom(n = 1000, size = 10, prob = 0.8) 
+binom_guid_tbl = data.frame( "success" = binom_guid_obs)
+
+binom_guid_hist = binom_guid_tbl %>% ggplot(mapping = aes(x = success, colour = "red")) + geom_histogram(bins = 10) + 
+  labs(x = "success", y = "counts")
+
+binom_guid_hist
+
+#beta-binom
+
+probs_frm_beta = rbeta(n = 1000, shape1 = 4, shape2 = 1)
+binom_beta_params_obs = rbinom(n = 1000, size = 10, prob = probs_frm_beta)
+binom_beta_params_tbl = data.frame("success" = binom_beta_params_obs)
+
+binom_beta_params_hist = binom_beta_params_tbl %>% ggplot(mapping = aes(x = success, colour = "red")) + geom_histogram(bins = 10) + 
+  labs(x = "success", y = " counts")
+binom_beta_params_hist
+
+
+# Comparison
+
+plain_binom_summ_stats = binom_guid_tbl %>% summarise("mean" = mean(success), "sd" = sd(success))
+binom_beta_params_summ_stats = binom_beta_params_tbl %>%  summarise("mean" = mean(success), "sd" = sd(success))
+
+binded_rows_plain_beta_binom = bind_rows(plain_binom_summ_stats, binom_beta_params_summ_stats)
+binded_rows_plain_beta_binom = binded_rows_plain_beta_binom %>% mutate("name" = c("plain_binom", "binom_beta")) %>% select(name, 1:2)
+
+
+- visually looking at the histograms we see that the beta-binomial distributions counts tend to increase in a somewhat monotonic fashion. The mean and standard deviation of the beat-binomial are also larger than that of the plain binomial, but not by much. We're'talking about fractions of a whole value which in terms of counts of success is not much.
+
+#Note: To improve clarity of code, make a column for each distirbution of raw data and then summarize from there. 

@@ -1,0 +1,19 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.4 - Poisson Regression
+
+- Define your response variable
+- use of deviance tests to compare contributions of covariates.
+- Be aware of function conflicts: eg: select() in dply and in MASS - when occur use 'package'::'command from package' as format.
+- use of table() - uses the cross-classifying factors to build a contingency table of the counts at each combination of factor levels. 
+- use of  prop.table() -  conditional proportions given margins, i.e. entries of x, divided by the appropriate marginal sums. to make contingency tables of proportions
+- use of with() function - Evaluate an R expression in an environment constructed from data
+- use of fct_recode() - Change factor levels by hand
+- Offset heuristic illustrates, modeling log(lambda) and adding an offset is equivalent to modeling rates, and coefficients can be interpreted that way.
+- looking at rates or other predictors that appear to be on same scale is good idea of using an offset.
+- use of glht() function. - General linear hypotheses and multiple comparisons for parametric models, including generalized linear models, linear mixed effects models, and survival models. - From this a Tukey general comparison can be done.
+- large residual deviance suggests significant lack-of-fit. Some possible explantaions are missining covariates, extreme observations, or overdispersion.
+- Overdispersion suggests that there is more variation in the response than the model implies.
+- Quasilikelihood model construction for overdispersion
+- Another approach to dealing with overdispersion is to model the response using a negative binomial instead of a Poisson distribution
+- use of tally() from dplyr to manually create proportions
+- use of geom_bar() - geom_bar() makes the height of the bar proportional to the number of cases in each group
+- use of zeroinfl() function - more details to follow.

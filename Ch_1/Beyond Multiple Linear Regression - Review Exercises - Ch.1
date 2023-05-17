@@ -1,0 +1,169 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.1
+
+Notes
+
+- LINE acronym - assumptions
+- Interpretations of model coefficients are most easily seen by writing out separate
+equations
+- designating your response and explanatory variables, framing question appropriately
+- use of ifelse() in creation of table 1.1. 
+- Univariate Summaries: Continuous variables can be summarized using histograms and statistics indicating center and spread; categorical variables can be summarized with tables and possibly bar charts.
+- Bivariate Summaries: next step in an initial exploratory analysis is the examination of numerical and graphical summaries of relationships between model covariates and responses. relationship between two continuous variables is depicted with scatterplots. Relationships between categorical variables and continuous variables can be illustrated with side-by-side boxplots 
+- centring to bring relevance to intercept in linear model
+- use of par(mfrow=c(2,2)) and plot(model1) to give all of the basic residual plots in one pane
+- always come up with holistic explanation of how explanatory variables are explaining response variable
+- introduction to bootstraps() - A bootstrap sample is a sample that is the same size as the original data set that is made using replacement. 
+- introduction to pull() - is similar to $. It's' mostly useful because it looks a little nicer in pipes, it also works with remote data frames, and it can optionally name the output.
+- often interested in issues of statistical inference as well—determining (beyond descriptive purposes) if effects are statistically significant, quantifying uncertainty in effect size estimates with confidence intervals, and quantifying uncertainty in model predictions with prediction intervals.
+- interpret the coefficient for the interaction term by comparing slopes under fast and non-fast conditions
+- introduction to the ggpairs() function - Make a matrix of plots with a given data set
+
+Exercises - Guided Exercises
+
+1. Gender discrimination in bank salaries
+
+a) Identify observational units, the response variable, and explanatory variables
+
+- Observational Units: dollars
+- Resonse Variable: salary in 1977
+- explanatory variables: bsal, sex_ind, senior, age, educ, exper
+
+b) The mean starting salary of male workers ($5957) was 16% higher than the mean starting salary of female workers ($5139). Confirm these mean salaries. Is this enough evidence to conclude gender discrimination exists? If not, what further evidence would you need?
+
+Soln: 
+
+mean_salaries = banksalary %>% group_by(sex) %>% summarize(mean_bsal = mean(bsal), mean_sal_77 = mean(sal77))
+percentage_diff_base = (mean_salaries[2,2] - mean_salaries[1,2])/mean_salaries[1,2]
+as.numeric(percentage_diff_base)
+
+- this alone is not enough to conlcude gender discrimination as there are other variables which can affect beginning salary such as age, educ, exper.
+
+Reflection: Idea is to ask yourself "Are there other things that might influence the initial observation?"
+
+c) How would you expect age, experience, and education to be related to starting salary? Generate appropriate exploratory plots; are the relationships as you expected? What implications does this have for modeling?
+
+Soln:  Before performing any EDA my assumption would be that there would be a positive strong linear relationship between the explanatory variables and beginning salary.
+
+banksalary %>% ggplot(mapping = aes(x = age, y = bsal)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + labs(x = "age", y = "bsal")
+banksalary %>% ggplot(mapping = aes(x = age, y = bsal )) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "age", y = "bsal")
+banksalary %>% ggplot(mapping = aes(x = age, y = bsal, colour = sex)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "age", y = "bsal")
+
+
+banksalary %>% ggplot(mapping = aes(x = exper, y = bsal)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + labs(x = "exper", y = "bsal")
+banksalary %>% ggplot(mapping = aes(x = exper, y = bsal)) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "exper", y = "bsal")
+
+
+
+banksalary %>%  ggplot(mapping = aes(x = as_factor(educ), y = bsal)) + geom_boxplot() + labs(x = "educ", y = "bsal")
+banksalary %>%  ggplot(mapping = aes(x = as_factor(educ), y = bsal)) + geom_boxplot() + facet_wrap(~ sex) + labs(x = "educ", y = "bsal")
+
+- We see that the linear relationships are relatively weak although positive.
+
+d) Why might it be important to control for seniority (number of years with the bank) if we are only concerned with the salary when the worker started?
+
+- seniority should not have an affect on beginning salary because seniority means you have been working for the bank, which would mean you are not beginning with the bank. As such you would not have a beginning salary. Using senior as an explanatory variable would produce spurrious outcomes from the data.
+
+ e) By referring to exploratory plots and summary statistics, are any explanatory variables (including sex) closely related to each
+other? What implications does this have for modeling?
+ 
+Soln: banksalary %>% ggpairs(columns = c(1, 3, 5:7))
+
+We see that there is a significant correlation between (age, bsal), (educ, bsal), (educ, age), (exper, age). Pairs of variables that one would expect to have some form of correlation between them. The implications this could have for the model possible large variability in the parameter estimates along with decreases in precision. There does not appear to be any multi-collinearity between sex and any of the other explanatory varaibles. 
+
+f) Fit a simple linear regression model with starting salary as the response and experience as the sole explanatory variable (Model 1). Interpret the intercept and slope of this model; also interpret the R-squared value. Is there a significant relationship between experience and starting salary?
+
+Soln: 
+
+model1 = lm(data = banksalary, formula = bsal ~ exper)
+summary(model1)
+
+Parameter estimate interpretations: - the beginning salary for a hire with no months of experience is 5289.02 (beta_0). For every month of expereince an increase of 1.30 (beta_1) is expected. R-Squared and Adjusted R-Squared both have values less than 5%. Implying that less than 5% of beginning salaries can be explained by experience alone. 
+
+g) Does Model 1 meet all linear least squares regression assumptions? List each assumption and how you decided if it was met or not.
+
+plot(model1) # general summary of basic residual diagnostics
+
+L: banksalary %>% ggplot(mapping = aes(x = exper, y = bsal)) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "exper", y = "bsal")
+	- there is a linear relationship if a line is drawn through the data, but it is not visibile if only the scatterplot points are drawn. 
+	- linearity can also be inspected by residuals vs fitted values. There is a slight pattern for the lower values, but overall the residuals are patternless.
+	
+I: Each clerical worker was for the most part hired independent of any othr worker. There may be some situations where one worker was a reference for another worker, but overall the majority of hires should be assumed independent. 
+
+N: banksalary %>% ggplot(mapping = aes(x = bsal)) + geom_histogram(binwidth = 500, fill = "white", color = "black") + labs(x = "salary", y = "frequency")
+   banksalary %>% ggplot(mapping = aes(x = bsal)) + geom_histogram(binwidth = 500, fill = "white", color = "black") + facet_wrap(~ sex) + 
+   labs(x = "salary", y = "frequency") # Distribution of response variable as beginning salary
+- the response variable of beginning salary does exhibit a relative normal distribution of values. This is also show in the normal probability plot from the residuals as well. There is some fatness in the tails but is closlely normally distirbuted.
+
+E: Looking at the scale-location plot in the plot of diagnostics, there are no positive or negative trends appearing initially. Which imply the assumption is valid.
+
+h) Is a model with all 4 confounding variables (Model 2, with senior, educ, exper, and age) better than a model with just experience (Model 1)? Justify with an appropriate significance test in addition to summary statistics of model performance. 
+
+model2 = lm(data = banksalary, formula = bsal ~ exper + senior + educ + age)
+summary(model2)
+plot(model2)
+
+drop_in_dev = anova(model1, model2, test = "F")
+drop_in_dev
+
+- the summary statistics of model 4 show that all parameter estimates have significance except for the covariate of age. the residual diagnostics with the 4 confounding variables coincide a lot more closely with the LINE assumptions than does model1. This is also illustrated in the drop_in_dev test which gives us an F-Statistic of 12.456 with a very small p-value. This implies we have strong evidence to reject the null hypothesis of the three additional covariates (senior, educ, age) not contributing to explain the beginning salary of a cleric.
+
+i) You should have noticed that the term for age was not significant in Model 2. What does this imply about age and about future modeling steps?
+
+Soln: age not being significant in Model 2 implies that we can drop the term as an explanatory variable from further models we construct.
+
+j) Generate an appropriate coded scatterplot to examine a potential age-by-experience interaction. How would you describe the nature of this interaction?
+
+banksalary = banksalary %>% mutate(age_exper_int = age * exper)
+banksalary %>% ggplot(mapping = aes(x = age_exper_int, y = bsal)) + 
+  geom_point(mapping = aes(colour = sex)) + geom_smooth(mapping = aes(colour = sex),method = "lm", se = FALSE) +  
+  labs(x = "age_exper_int", y = "bsal") + theme(axis.text.x = element_text(angle = 315)) # could also have made sex varaible global
+
+ Examining the plot and the nature of the interaction we can interpret the interaction as follows: For a unit increase in age your beginning salary will be affected by the product combined slope factor and the amount of experience you have prior to starting at the firm. Interestingly a male employee with a higher age and more experience will have a lower beginning salary than a male with less of both.  
+ 
+ 
+k) A potential final model (Model 3) would contain terms for seniority, education, and experience in addition to sex. Does this model meet all regression assumptions? State a 95% confidence interval for sex and interpret this interval carefully in the context of the problem.
+
+model3 = lm(data = banksalary, formula = bsal ~ exper + senior + educ + sex)
+summary(model3)
+plot(model3)
+confint(model3)
+
+- L: linear relationship is displayed by the residuals plotted against the fitted values. I: independence is seen from random sampling of employees. N: normality of the distribution of the bsal is displayed in the Normal- Q-Q plot. E: Equal variabce can be seen in both the scale-location plot and the residual vs fitted value plot. No patterns and all within an interval of values.
+
+
+- confidence interval: sexMALE (488.1514633, 956.454719) - Over the course of repeated sampling 95% of the intervals constructed to model the effect of the male categorical variable will contain the true effect of being a MALE in determingin beginning salary.
+
+
+
+l) Based on Model 3, what conclusions can be drawn about gender discrimination at Harris Trust? Do these conclusions have to be qualified at all, or are they pretty clear cut?
+
+soln: AIC(model2, model3)
+
+Using the AIC measurement we see that model 3 better explains the beginning salaries than does model 2. THis is emphasized by the 20% increase in both R-Squared and adjusted R-Squared. There does not appear to be any needed for qualification of the results. Although 50% of the beginning alaries are not explained by the regression model which does imply a large amount of unaccounted for data.
+
+m) Often salary data is logged before analysis. Would you recommend logging starting salary in this study? Support your decision analytically.
+
+model3_log = lm(data = banksalary, formula = log(bsal) ~ exper + senior + educ + sex)
+summary(model3_log)
+plot(model3_log)
+
+- No it doesn't' provide any difference in the magnitudes of the parameter estimates or results. 
+
+n) Regardless of your answer to the previous question, provide an interpretation for the coefficient for the male coefficient in a modified Model 3 after logging starting salary.
+
+- the coefficient on sex is interpreted in the following fashion: if the observation is a MALE, there is a 0.12 increase in the log(bsal) of the employee.
+
+o) Build your own final model for this study and justify the selection of your final model. You might consider interactions with gender, since those terms could show that discrimination is stronger among certain workers. Based on your final model, do you find evidence of gender discrimination at Harris Trust?
+
+banksalary = banksalary %>% mutate(age_sex = age * sex_ind, sex_exper = sex_ind * exper, sex_educ = sex_ind * educ, 
+                                   sex_senior = sex_ind * senior)
+
+model4_full = lm(data = banksalary, formula = bsal ~ exper + senior + educ + sex + age_sex + sex_exper + sex_educ)
+summary(model4_full)
+plot(model4_full)
+
+- Not much improvements in the explanations.

@@ -1,0 +1,56 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.2 - Using Likelihoods
+
+Notes
+
+- methods to evaluate responses beyond independent, identically distributed, normal responses (iidN).
+- idea of starting with small data set and then expand to use on bigger one oncw ideas are solidified.
+- use of geom_line()
+- use of geom_segment()
+- creating functions to estimate computations of likelihoods
+- using grid searches after functions created to maximize likelihoods
+- grid.arrange() - put multiple graphs on a page.
+- use of optimize() function in R
+- larger sample size --> more precise estimates because of less variation
+- understand the 'idea' of a likelihood
+- differentiating likelihood function from probability function
+- Likelihoods are not only useful for fitting models, but they are also useful when comparing models.
+- If the parameters for a reduced model are a subset of parameters for a larger model, we say the models are nested and the difference between their likelihoods can be incorporated into a statistical test to help judge the benefit of including additional parameters.
+- If the parameters are not nested, comparing models with the likelihood can still be useful but will take a different form. (AIC and BIC)
+- LRT test
+- When conditioning, every possible condition must have a probability associated with it.
+
+
+Guided Exercises
+
+2) Consider Case 3, a hypothetical data set with 6000 boys and 4000 girls.
+•Use the methods for Case 1 and Case 2 and determine the MLE
+for pB for the independence model. Compare your result to the
+MLEs for Cases 1 and 2.
+•Describe how the graph of the log-likelihood for Case 3 would
+compare to the log-likelihood graphs for Cases 1 and 2.
+•Compute the log-likelihood for Case 3. Why is it incorrect to
+perform an LRT comparing Cases 1, 2, and 3?
+
+i) #maximizing of p_b
+
+oLik.f = function(pb){
+  return(6000*log(pb) + 4000*log(1 - pb))
+}
+
+optimize(oLik.f, interval = c(0,1), maximum = TRUE)
+
+ii)
+
+b = seq(from = 0, to = 1, length =  1001)   # possible values for prob a boy is born
+
+lik_q3 = (pb^6000) * ((1-pb)^4000)
+log_lik_q3 = 6000 * log(pb) +  4000 * log(1-pb)
+q3_df = tibble("pb" = pb, "lik" = lik_q3, "log_lik" = log_lik_q3)
+
+q3_lik_graph = q3_df %>% ggplot(mapping = aes(x = pb, y = lik)) +  geom_line() + labs(x = "pb", y = "liklihood")
+q3_log_lik_graph = q3_df %>% ggplot(mapping = aes(x = pb, y = log_lik_q3)) +  geom_line() + labs(x = "pb", y = "log - liklihood")
+
+
+q3_log_lik_graph
+
+# Note: Only the log-likelihood graph could be computed due to the limits of computer calculation (floating point capability).
