@@ -14,17 +14,51 @@ library(modelr)
 
 derby_plus = read_csv("Ch_1/derbyplus.csv") #note  file path and project environment
 
-derby_plus = derby_plus %>%  mutate(fast = if_else(condition == "fast", true = 1, false = 0), 
+derby_plus = derby_plus %>%  mutate(fast = if_else(condition == "fast", true = 1, false = 0),
                                                  good = if_else(condition == "good", true = 1, false = 0), yearnew = year - 1896,
                                                  fastfactor = if_else(fast == 0, "not fast", "fast"))
 
 
+count_of_conditions = derby_plus %>% group_by(condition) %>% summarise('count' = n()) %>% mutate('perc' = count/sum(count))
+
+gg <- ggpairs(data = derby_plus,
+              columns = c("condition", "year", "starters", "speed"))
+
+
+derby_plus %>% ggplot(mapping = aes(x = year, y = speed, colour = fastfactor)) + geom_point(mapping = aes(shape = fastfactor)) +
+  geom_smooth(mapping = aes(linetype = fastfactor), method = lm, se = TRUE)
+
 model1 <- lm(speed ~ year, data = derby_plus)
+model2 <- lm(speed ~ yearnew, data = derby_plus)
+
 par(mfrow=c(2,2))
+plot(model2)
+par(mfrow = c(1,1))
+
+
+ggplot(derby_plus, aes(x = year, y = speed)) +
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x,
+              se = FALSE, linetype = 1) +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2),
+              se = FALSE, linetype = 2)
+
+derby_plus = derby_plus %>%  mutate(yearnew2 = yearnew^2)
+model2q = lm(data = derby_plus, speed ~ yearnew + yearnew2)
+
+par(mfrow=c(2,2))
+plot(model2q)
+par(mfrow = c(1,1))
+
+
+model3 = lm(data = derby_plus, formula = speed ~ fast)
+
+ggplot(data = derby_plus, mapping = aes(x = fast, y = speed)) + geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, linetype = 1)
 
 
 model4 <- lm(speed ~ yearnew + fast, data = derby_plus)
-derby_plus = derby_plus %>% add_predictions( model = model4, var = "pred")
+derby_plus = derby_plus %>% add_predictions(model = model4, var = "pred")
 
 # Exercises
 
@@ -52,12 +86,12 @@ as.numeric(percentage_diff_base)
 # Univariate EDA
 
 banksalary %>% ggplot(mapping = aes(x = sal77)) + geom_histogram(binwidth = 1000, fill = "white", color = "black") + labs(x = "salary", y = "frequency")
-banksalary %>% ggplot(mapping = aes(x = sal77)) + geom_histogram(binwidth = 1000, fill = "white", color = "black") + facet_wrap(~ sex) + 
+banksalary %>% ggplot(mapping = aes(x = sal77)) + geom_histogram(binwidth = 1000, fill = "white", color = "black") + facet_wrap(~ sex) +
   labs(x = "salary", y = "frequency") # Distribution of response variable as slary in 1977
 
 
 banksalary %>% ggplot(mapping = aes(x = bsal)) + geom_histogram(binwidth = 500, fill = "white", color = "black") + labs(x = "salary", y = "frequency")
-banksalary %>% ggplot(mapping = aes(x = bsal)) + geom_histogram(binwidth = 500, fill = "white", color = "black") + facet_wrap(~ sex) + 
+banksalary %>% ggplot(mapping = aes(x = bsal)) + geom_histogram(binwidth = 500, fill = "white", color = "black") + facet_wrap(~ sex) +
   labs(x = "salary", y = "frequency") # Distribution of response variable as beginning salary
 
 
@@ -73,14 +107,14 @@ banksalary %>% ggplot(mapping = aes(x = exper)) + geom_histogram(binwidth = 20, 
 #Bivariate EDA
 
 banksalary %>% ggplot(mapping = aes(x = age, y = bsal)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + labs(x = "age", y = "bsal")
-banksalary %>% ggplot(mapping = aes(x = age, y = bsal )) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) + 
+banksalary %>% ggplot(mapping = aes(x = age, y = bsal )) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) +
   labs(x = "age", y = "bsal")
-banksalary %>% ggplot(mapping = aes(x = age, y = bsal, colour = sex)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + 
+banksalary %>% ggplot(mapping = aes(x = age, y = bsal, colour = sex)) + geom_point() + geom_smooth(method = "lm", se = FALSE) +
   labs(x = "age", y = "bsal")
 
 
 banksalary %>% ggplot(mapping = aes(x = exper, y = bsal)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + labs(x = "exper", y = "bsal")
-banksalary %>% ggplot(mapping = aes(x = exper, y = bsal)) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) + 
+banksalary %>% ggplot(mapping = aes(x = exper, y = bsal)) + geom_point(mapping = aes(colour = sex)) + geom_smooth(method = "lm", se = FALSE) +
   labs(x = "exper", y = "bsal")
 
 
@@ -110,8 +144,8 @@ drop_in_dev
 # Interaction scatterplot
 
 banksalary = banksalary %>% mutate(age_exper_int = age * exper)
-banksalary %>% ggplot(mapping = aes(x = age_exper_int, y = bsal)) + 
-  geom_point(mapping = aes(colour = sex)) + geom_smooth(mapping = aes(colour = sex),method = "lm", se = FALSE) +  
+banksalary %>% ggplot(mapping = aes(x = age_exper_int, y = bsal)) +
+  geom_point(mapping = aes(colour = sex)) + geom_smooth(mapping = aes(colour = sex),method = "lm", se = FALSE) +
   labs(x = "age_exper_int", y = "bsal") + theme(axis.text.x = element_text(angle = 315)) # could also have made sex variable global
 
 
@@ -137,7 +171,7 @@ plot(model3_log)
 
 #Own final model
 
-banksalary = banksalary %>% mutate(age_sex = age * sex_ind, sex_exper = sex_ind * exper, sex_educ = sex_ind * educ, 
+banksalary = banksalary %>% mutate(age_sex = age * sex_ind, sex_exper = sex_ind * exper, sex_educ = sex_ind * educ,
                                    sex_senior = sex_ind * senior)
 
 model4_full = lm(data = banksalary, formula = bsal ~ exper + senior + educ + sex + age_sex + sex_exper + sex_educ)
