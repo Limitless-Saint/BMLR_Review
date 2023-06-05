@@ -60,6 +60,12 @@ ggplot(data = derby_plus, mapping = aes(x = fast, y = speed)) + geom_point() +
 model4 <- lm(speed ~ yearnew + fast, data = derby_plus)
 derby_plus = derby_plus %>% add_predictions(model = model4, var = "pred")
 
+new_data = data.frame(yearnew = derby_plus$yearnew, fast = 1)
+predict(model4, newdata = new_data, interval = "prediction")
+
+model5 = lm(data = derby_plus, formula = speed ~ yearnew + fast + yearnew:fast)
+
+
 # Exercises
 
 # Guided Exercises - # 1
@@ -177,3 +183,6 @@ banksalary = banksalary %>% mutate(age_sex = age * sex_ind, sex_exper = sex_ind 
 model4_full = lm(data = banksalary, formula = bsal ~ exper + senior + educ + sex + age_sex + sex_exper + sex_educ)
 summary(model4_full)
 plot(model4_full)
+
+
+
