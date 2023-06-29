@@ -11,10 +11,26 @@ library(pander)
 library(MASS)
 library(tidyverse)
 
-fHH1 <- read_delim("C:/Users/Saint/Documents/School_2017_onward/2021-2022/STA303/BMLR_Review_Exercises/fHH1.csv")
+fHH1 <- read_delim("C:/Users/Saint/Documents/School_2017_onward/2021-2022/STA303/BMLR_Review/Ch_4/fHH1.csv")
 
 fHH1 = fHH1 %>% dplyr::select(2:6)
- 
+
+
+#EDA - Sec 4.4
+
+summarise(.data = group_by(.data = fHH1, roof), 'mean' = mean(total), 'sd' = sd(total), 'var' = var(total)) # non-piped version
+
+mean_age_sum = fHH1 %>% group_by(age) %>% summarise(mean = mean(total), logmean = log(mean(total)), n = n())
+ggplot(data = mean_age_sum, mapping = aes(x = age, y = logmean)) + geom_point() + geom_smooth(method = 'loess', size = 1.5) +
+  xlab("Age of Head Household") + ylab("Log of empirical mean number in the house")
+
+mean_age_sum2 = fHH1 %>% group_by(age, location) %>% summarise(mean = mean(total), logmean = log(mean(total)), n = n())
+ggplot(data = mean_age_sum2, mapping = aes(x = age, y = logmean, color = location, linetype = location, shape = location)) +
+  geom_point() + geom_smooth(method = 'loess', se = FALSE) +
+  xlab("Age of Head Household") + ylab("Log of empirical mean number in the house")
+
+
+
  # Sec 4.4.3
 
 modela = glm(data = fHH1, formula = total ~ age, family = poisson)
@@ -46,20 +62,25 @@ summary(modela2L)
 
 exp(coef(modela2L))
 
+drop_in_dev3 = anova(modela2, modela2L, test = "Chisq")
+drop_in_dev3
+
+
 
 lfitteda = predict(modela)
 lresida = residuals(modela)
 lresid.df = data.frame(lfitteda, lresida)
 
-ggplot(data = lresid.df, mapping = aes(x = lfitteda, y = lresida)) + geom_point(alpha = 0.25) + 
+ggplot(data = lresid.df, mapping = aes(x = lfitteda, y = lresida)) + geom_point(alpha = 0.25) +
   geom_smooth(method = "loess", size = 1.5, linetype = 2) + geom_line(y = 0, size = 1.5, col = "red") +
   labs(x = "Fitted values", y = "Deviacne Residuals")
 
-
+GOF_test_1 = 1-pchisq(q = modela2$deviance, df = modela2$df.residual)
+GOF_test_1
 
 # Sec 4.6
 
-c_data <- read_csv("c_data.csv")
+c_data <- read_csv(file = "C:/Users/Saint/Documents/School_2017_onward/2021-2022/STA303/BMLR_Review/Ch_4/c_data.csv")
 
 ggplot(data = c_data, mapping = aes(x = nv)) + geom_histogram(bins = 15, color = "black", fill = "red") +
   xlab("Number of violent crimes")
@@ -70,11 +91,11 @@ table2chp4
 c_data = c_data %>% filter(nvrate < 5)
 
 c_data <- c_data %>%
-  mutate(region, region = fct_recode(region, 
+  mutate(region, region = fct_recode(region,
                                      "S" = "SW", "S"="SE"))
 
-table4ch4 = c_data %>% group_by(region, type) %>% 
-  summarise(MeanCount = mean(nv, na.rm = TRUE), VarCount = var(nv, na.rm = TRUE), MeanRate = mean(nvrate, na.rm = TRUE), 
+table4ch4 = c_data %>% group_by(region, type) %>%
+  summarise(MeanCount = mean(nv, na.rm = TRUE), VarCount = var(nv, na.rm = TRUE), MeanRate = mean(nvrate, na.rm = TRUE),
             VarRate = var(nvrate, na.rm = TRUE), n = n())
 
 table4ch4
@@ -91,7 +112,7 @@ summary(modeltr)
 mult_comp = summary(glht(model = modeltr, linfct = mcp(region = "Tukey")))
 mult_comp
 
-modeli = glm(data = c_data, formula = nv ~ type + region + region:type, family = poisson, 
+modeli = glm(data = c_data, formula = nv ~ type + region + region:type, family = poisson,
              offset = log(enroll1000))
 summary(modeli)
 
@@ -101,7 +122,7 @@ drop_in_dev_class
 
 # Sec 4.9
 
-modeliq = glm(data = c_data, formula = nv ~ type + region + region:type, family = quasipoisson, 
+modeliq = glm(data = c_data, formula = nv ~ type + region + region:type, family = quasipoisson,
               offset = log(enroll1000))
 summary(modeliq)
 
@@ -110,6 +131,10 @@ modeltrq = glm(data = c_data, formula = nv ~ type + region, family = quasipoisso
 
 drop_in_dev_disp = anova(modeltrq, modeliq, test = "F")
 drop_in_dev_disp
+
+GOF_test_2 = 1 - pchisq(q = modeliq$deviance, df = modeliq$df.residual)
+GOF_test_2
+
 
 # Sec 4.9.3
 
@@ -124,16 +149,22 @@ summary(modelinb)
 
 # EDA Plotting of Data
 
-# Observed 
-zip.data = weekendDrinks <- read_csv("weekendDrinks.csv")
+# Observed
+zip.data = weekendDrinks <- read_csv(file = "C:/Users/Saint/Documents/School_2017_onward/2021-2022/STA303/BMLR_Review/Ch_4/weekendDrinks.csv")
+names(zip.data)
+dim(zip.data)
+
 
 obs_table = tally(group_by(zip.data, drinks)) %>% mutate(prop = round(n/sum(n), 3))
 obs_table
 
-g.obs = obs_table %>%  ggplot(mapping = aes(x = drinks, y = prop)) + geom_bar(stat = "identity") + 
+g.obs = obs_table %>%  ggplot(mapping = aes(x = drinks, y = prop)) + geom_bar(stat = "identity") +
   labs(x = "Number of Drinks", y = "Proportion") + coord_cartesian(ylim = c(0, 0.5))
 
 g.obs
+
+prop_sex = with(data = zip.data, round(prop.table(table(sex)), digits = 2))
+
 
 # Modeled
 
@@ -142,7 +173,7 @@ possible.values = with(data = sum1, 0:maxDrinks)
 model.prob = with(data = sum1, dpois(x = possible.values, lambda = lambda))
 pois.model = data.frame(possible.values, model.prob)
 
-g.model = ggplot(data = pois.model, mapping = aes(x = possible.values, y = model.prob)) + geom_bar(stat = "identity") + 
+g.model = ggplot(data = pois.model, mapping = aes(x = possible.values, y = model.prob)) + geom_bar(stat = "identity") +
   labs(x = "Number of Drinks", y = "Probability") + ggtitle("Poisson Model") + coord_cartesian(ylim = c(0, 0.5))
 
 g.model
@@ -156,13 +187,13 @@ sex.table <- tally(group_by(zip.data, sex))  %>%
 dorm.table <- tally(group_by(zip.data, dorm))  %>%
   mutate(prop=round(n/sum(n),3))
 
-zip.data <- zip.data %>% 
+zip.data <- zip.data %>%
   mutate(off.campus=ifelse(dorm=="off campus",1,0))
 
 off.table <- tally(group_by(zip.data, off.campus))  %>%
   mutate(prop=round(n/sum(n),3))
 
-zip.data <- zip.data %>% 
+zip.data <- zip.data %>%
   mutate(firstYear=dorm%in%c("kildahl","mohn","kittlesby"))
 
 fy.table <- tally(group_by(zip.data, firstYear))  %>%
@@ -180,3 +211,5 @@ zip.m2 <- zeroinfl(drinks ~ off.campus + sex | firstYear,
 summary(zip.m2)
 
 exp(coef(zip.m2))
+
+vuong(pois.m1, zip.m2)

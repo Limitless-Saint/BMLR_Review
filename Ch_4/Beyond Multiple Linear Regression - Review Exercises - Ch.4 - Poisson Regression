@@ -1,5 +1,7 @@
 Beyond Multiple Linear Regression - Review Exercises - Ch.4 - Poisson Regression
 
+Notes: 
+
 - Define your response variable
 - use of deviance tests to compare contributions of covariates.
 - Be aware of function conflicts: eg: select() in dply and in MASS - when occur use 'package'::'command from package' as format.
@@ -16,4 +18,193 @@ Beyond Multiple Linear Regression - Review Exercises - Ch.4 - Poisson Regression
 - Another approach to dealing with overdispersion is to model the response using a negative binomial instead of a Poisson distribution
 - use of tally() from dplyr to manually create proportions
 - use of geom_bar() - geom_bar() makes the height of the bar proportional to the number of cases in each group
-- use of zeroinfl() function - more details to follow.
+- use of zeroinfl() function - comes frpm 'pscl' package. Used for Zero-inflated models 
+
+
+#Guided Exercises
+
+# Exercise 1
+
+We wish to build a regression model to describe the number of burglaries on a college campus in a year. Our population of interest will be U.S. liberal arts colleges.
+
+a. Describe why the response variable (Y = # burglaries on campus in a year) could be modeled by a Poisson distribution.
+
+- Poisson can model the number of burglaries because the random variable is a count over a fixed unit of time. 
+
+b. Describe explanatory variables which might explain differences in lambda_i = mean number of burglaries per year on campus i.
+
+- campus size, location of campus (city, town, region), type of college, college reputation
+
+c.  Consider a campus with an average of 5 burglaries per year. Use dpois() to sketch a plot of the distribution of Y for this campus. Use rpois() to verify that both the mean and variance of Y are given by lambda = 5.
+
+# make data frame of possible values
+
+possible_robs = 0:50
+dens_robs = dpois(x = possible_robs, lambda = 5)
+robs.model = tibble('possible_robs' = possible_robs, 'rob_prob' = dens_robs)
+
+#plot the values
+
+robs_model = ggplot(data = robs.model, mapping = aes(x = possible_robs, y = rob_prob)) + geom_bar(stat = 'identity') +
+  labs(x = 'Number of Burglaries', y = 'Probability') + ggtitle('Poisson Model of Burglaries') + coord_cartesian(ylim = c(0, 0.5))
+
+robs_model
+
+# verify mean and variance are equal
+
+verify_pois = rpois(n = 40, lambda = 5)
+verify_pois
+
+mean(verify_pois)
+var(verify_pois)
+
+d. Consider a campus with an average of 20 burglaries per year and repeat (c).
+
+# make data frame of possible values
+
+possible_robs_2 = 0:50
+dens_robs_2 = dpois(x = possible_robs_2, lambda = 20)
+robs.model_2 = tibble('possible_robs' = possible_robs_2, 'rob_prob' = dens_robs_2)
+
+#plot the values
+
+robs_model = ggplot(data = robs.model_2, mapping = aes(x = possible_robs, y = rob_prob)) + geom_bar(stat = 'identity') +
+  labs(x = 'Number of Burglaries', y = 'Probability') + ggtitle('Poisson Model of Burglaries') + coord_cartesian(ylim = c(0, 0.5))
+
+robs_model
+
+# verify mean and variance are equal
+
+verify_pois_2 = rpois(n = 100, lambda = 20)
+verify_pois_2
+
+mean(verify_pois_2)
+var(verify_pois_2)
+
+
+# Exercise 2
+
+a) Create a histogram of MATINGS. Is there preliminary evidence that number of matings could be modeled as a Poisson response? Explain.
+
+ elephants %>% ggplot(mapping = aes(x = MATINGS)) + geom_bar(fill = "blue") + labs(x = 'number of matings', y = 'counts')
+summary_matings = elephants %>% summarise(mean_matings = mean(MATINGS), var_matings = var(MATINGS))
+
+There appears to be evidence that the distribution of mating is not normally distributed. There is minor evidence for poisson regression.
+
+b) Plot MATINGS by AGE. Add a least squares line. Is there evidence that modeling matings using a linear regression with age might not be appropriate? Explain. (Hints: fit a smoother; check residual plots).
+
+elephants %>% ggplot(mapping = aes(x = AGE, y = MATINGS)) + geom_point() + geom_smooth(method = "loess", size = 1.5) + 
+  labs(x = "Age", y = "Number of Matings")
+
+  No it might not be appropriate due to the curvature that is present in the linear regression.
+  
+c) For each age, calculate the mean number of matings. Take the log of each mean and plot it by AGE.
+i. What assumption can be assessed with this plot?
+ii. Is there evidence of a quadratic trend on this plot?
+
+mean_mate_by_age = elephants %>% group_by(AGE) %>%  summarize(mean = mean(MATINGS), var = var(MATINGS), 
+                                                                                log_matings = log(mean))
+
+
+log_mean_mate_plot = mean_mate_by_age %>% ggplot(mapping = aes(x = AGE, y = log_matings)) + geom_point() + 
+  geom_smooth(method = 'loess', linewidth = 1.5) + labs(x = "Age", y = "Number of matings_Logged")
+
+log_mean_mate_plot
+
+i) the assumption that can be asses is the existance of a linear relationship between the log(matings) and age. Here it appears to be curvlinear but not to the extent of a quadratic
+ii) the trend does not appear to be quadratic.
+
+
+d) Fit a Poisson regression model with a linear term for AGE. Exponentiate and then interpret the coefficient for AGE.
+
+regress_elep_1 = glm(data = elephants, formula = MATINGS ~ AGE, family = poisson)
+summary(regress_elep_1)
+
+> exp(coef(regress_elep_1))
+(Intercept)         AGE 
+  0.2055619   1.0711071
+  
+- What we see here is with a year increase in AGE we will have a 7% invrease in the number of matings an elephant will engage in.
+
+e) Construct a 95% confidence interval for the slope and interpret in context (you may want to exponentiate endpoints).
+
+exp(confint(regress_elep_1))
+Waiting for profiling to be done...
+                2.5 %    97.5 %
+(Intercept) 0.0694813 0.5892357
+AGE         1.0425585 1.1003602
+
+f) Are the number of matings significantly related to age? Test with
+i. a Wald test and
+ii. a drop in deviance test.
+
+i) library(aod) #to be able to perform wald test outside of summary()
+   wald.test(Sigma = vcov(regress_elep_1), b = coef(regress_elep_1), Terms = 2)
+   
+   Wald test:
+----------
+
+Chi-squared test:
+X2 = 25.0, df = 1, P(> X2) = 5.8e-07
+
+ii) null_model_elep = glm(data = elephants, formula = MATINGS ~ 1, family = poisson)
+    drop_in_dev_elep = anova(null_model_elep, regress_elep_1, test = 'Chisq')
+	
+	drop_in_dev_elep
+Analysis of Deviance Table
+
+Model 1: MATINGS ~ 1
+Model 2: MATINGS ~ AGE
+  Resid. Df Resid. Dev Df Deviance  Pr(>Chi)    
+1        40     75.372                          
+2        39     51.012  1    24.36 7.991e-07 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+From the Wald-test and the drop in deviance test we see that in both instances the addition of the AGE term to our model is statistically significant.
+
+
+g) Add a quadratic term in AGE to determine whether there is a maximum age for the number of matings for elephants. Is a quadratic model preferred to a linear model? To investigate this question, use
+i. a Wald test and
+ii. a drop in deviance test.
+
+elephants = elephants %>% mutate(AGE2 = AGE^2) #adding quadratic term to df
+
+regress_elep_2 = glm(data = elephants, formula = MATINGS ~ AGE + AGE2, family = poisson)
+summary(regress_elep_2)
+
+drop_in_dev_elep2 = anova(regress_elep_1, regress_elep_2, test = 'Chisq')
+drop_in_dev_elep2
+Analysis of Deviance Table
+
+Model 1: MATINGS ~ AGE
+Model 2: MATINGS ~ AGE + AGE2
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+1        39     51.012                     
+2        38     50.826  1  0.18544   0.6667
+
+From both tests we see that a quadratic term doesn't' add much explanation to our model.
+
+h) What can we say about the goodness-of-fit of the model with age as the sole predictor? Compare the residual deviance for the linear model to a Chi_sq distribution with the residual model degrees of freedom.
+
+1 - pchisq(q = regress_elep_1$deviance, df = regress_elep_1$df.residual) #GOF test
+[1] 0.09426231
+
+This implies that the probability of seeing a deviance of this size is 9%. 
+
+i) Fit the linear model using quasi-Poisson regression. (Why?)
+   i. How do the estimated coefficients change?
+   ii. How do the standard errors change?
+   iii. What is the estimated dispersion parameter?
+   iv. An estimated dispersion parameter greater than 1 suggests overdispersion. When adjusting for overdispersion, are you more or less likely to obtain a significant result when testing coefficients? Why?
+   
+regress_elep_od = glm(data = elephants, formula = MATINGS ~ AGE, family = quasipoisson)
+summary(regress_elep_od)
+
+coef(regress_elep_1)
+coef(regress_elep_od)
+
+drop_in_dev_od = anova(regress_elep_od, regress_elep_1, test = 'F')
+drop_in_dev_od
+
+- the estimated coefficients do not change with a quasi-Poisson regression. The standard erros for the coefficients will be inflated by a dispersion parameter. Here the dispersion parameter is 1.15733, which is not much greater than 1. THis means that there is very little overdispersion within the model, but this may be due to the small sample size. You will be less likely to obtain a signficiant result because we are accounting for the additional variation in our coefficient estimates.
