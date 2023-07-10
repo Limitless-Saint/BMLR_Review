@@ -1,0 +1,11 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.6 - Logistic Regression
+
+Notes:
+
+- grid.arrange()
+- Wald confidence interval and profile likelihood confidence interval are two different objects, but same in flavour
+- data prepping, turning objects into factors with labels, use of table() for confirmation
+- filtering on filter(complete.cases(.)) - returns logical vector on cases that are complete
+- use of cut_number() to simplify groupings
+- different ways of applyin gfactors to a model
+- multiple models being included in a drop in deviance test - must be nested
