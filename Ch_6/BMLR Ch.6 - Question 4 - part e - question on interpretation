@@ -1,0 +1,18 @@
+BMLR Ch.6 - Question 4 - part e - question on interpretation
+
+
+
+I am working on an exercise from a textbook that revolves around logistic regression. The part of the exercise I'm having trouble with revolves around one of the steps in the exploratory data analysis stage. This is the question I'm having difficulty interpreting:
+
+
+> Does there appear to be an interaction between number of years
+smoked and whether the subject keeps a bird? Demonstrate
+with an interaction plot and a coded scatterplot with empirical
+logits on the y-axis.
+
+
+To give background on the question, it is about the effects of keeping a bird has on developing lung cancer. In this instance the response variable is the log odds of getting cancer vs not getting cancer. At this juncture I have two categorical variables: `cancer/no cancer` and `keep bird/no bird` and the continuous variable `years smoking`. 
+
+In a previous part of the exercise I constructed empirical logits using the `cancer/no cancer` against `years smoking`. Here I was able to get the necessary proportions by counting the cases that would be allocated to each of the respective subsets.
+
+But now I'm lost on how to do this adding in the variable `keep bird/no bird`. I did create an empirical logit of `keep bird/no bird` against `years smoked`, but I don't think this is what was requested because the response of importance is that of the log odds of `cancer/no cancer`. 

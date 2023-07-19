@@ -9,3 +9,335 @@ Notes:
 - use of cut_number() to simplify groupings
 - different ways of applyin gfactors to a model
 - multiple models being included in a drop in deviance test - must be nested
+- use of cdplot() - Computes and plots conditional densities describing how the conditional distribution of a categorical variable y changes over a numerical variable x.
+- For Exploratory Data Analysis involving a response variable that is categorical, one cannot just create a scattrpoint plot. The reason is recall that your variable is categoriacal and as a result will only have two postions. So need to be more creative with the types of plots used: cnditional density plots, boxplots are possibilities. When doing logitplots then can do scattrpoints.
+- introduction to across() and all_of() in Tidyverse syntax
+- done to convert various columns to factors()
+- note the steps in 4a to create a cross table and proportion table using dplyr, to create the table the order by which you specify the variables in group_by() is pivotal in the behaviour of the operation. Used pivot_longer() the newer version of spread()
+- using is.na() for altering NA values in tables
+- applying rename() to columns of a data frame
+- Scope of inference: Random Sampling vs Random Assignment - Random Sampling --> can make conclusions on whole population, but not cause and effect. Random Assignment --> cannot make conclusion for whole population, cause and effect can be inferred for only participants in the study.
+
+Guided Exercises
+
+Exercise 1
+
+goals_table = tibble("Status" = c("Behind", "Tied", "Ahead"), "Saved" = c(20,19,2), "Scored" = c(55, 71, 18)) %>%
+  mutate("Shots" = Saved + Scored, "Prop_Scored" = Scored/Shots) #Created table of data
+
+  a)   Calculate the odds of a successful penalty kick for games in which the goalkeeper’s team was behind, tied, or ahead. Then, construct empirical odds ratios for successful penalty kicks for (a) behind versus tied, and (b) tied versus ahead.
+
+# i)
+
+goals_table = goals_table %>%  mutate("Odds_Scored" = Prop_Scored/(1-Prop_Scored))
+goals_table
+
+A tibble: 3 × 6
+  Status Saved Scored Shots Prop_Scored Odds_Scored
+  <chr>  <dbl>  <dbl> <dbl>       <dbl>       <dbl>
+1 Behind    20     55    75       0.733        2.75
+2 Tied      19     71    90       0.789        3.74
+3 Ahead      2     18    20       0.9          9   
+
+#ii # Created an odds_ratio table for practice with programming observe use of subsetting and vectorized functions
+
+odds_ratios = list()
+
+for (i in 1:3){
+  vec = vector(mode = "double", length = 3) #preallocate a vector to put ratios into
+  for(j in 1:3){
+  vec[[j]] = goals_table[[j, 6]]/goals_table[[i,6]]
+  }
+  odds_ratios[[i]] = vec
+}
+
+df = data.frame(matrix(data = NA, nrow = 3, ncol = 3))
+
+for(i in 1:3){
+  for(j in 1:3){
+    df[[i,j]] = odds_ratios[[i]][[j]]
+  }
+}
+
+colnames(df) = c("Behind", "Tied", "Ahead")
+rownames(df) = colnames(df)
+
+# Using a vectorized function as alternative
+df_2 = do.call(what = "rbind", odds_ratios)
+df_2
+
+
+df_2
+          [,1]      [,2]     [,3]
+[1,] 1.0000000 1.3588517 3.272727
+[2,] 0.7359155 1.0000000 2.408451
+[3,] 0.3055556 0.4152047 1.000000
+
+where 1 = Behind, 2 = Tied, 3 = Ahead, and odds are read as if looking at top row is "top row/side row"
+
+b) Fit a model with the categorical predictor c(“behind”,“tied”,“ahead”) and interpret the exponentiated coefficients. How do they compare to the empirical odds ratios you calculated?
+
+
+scored = glm(data = goals_table, formula = cbind(Scored, Shots - Scored) ~ Status, family = binomial)
+summary(scored)
+
+exp(coef(scored))
+
+(Intercept) StatusBehind   StatusTied 
+   9.0000000    0.3055556    0.4152047 
+   
+We interpret this as there is a 70% decrease in the odds of a player scoring when his team is behind compared if to if they were ahead. Both sets of odds ratios are exactly the same.
+
+
+Exercise 4
+
+a) Perform an exploratory data analysis to see how each explanatory variable is related to the response (cancer). Summarize each relationship in one sentence.
+
+# each variable is explored against the response variable
+
+# quantitative variables
+cd_plot_age = cdplot(formula = lung_cancer ~ age, data = birdkeeping)
+cd_plot_age
+
+boxplot_age = birdkeeping %>% ggplot(mapping = aes(x = lung_cancer, y = age)) + geom_boxplot()
+boxplot_age
+
+mean_age = birdkeeping  %>% summarise(mean_age = mean(age))
+
+-- Interpretations: For the cd_plot_age, we observe that regradless of age there appears to be a consistnt probability of lung cancer at around 65%, it is important to note that there are not many data points at each age level so this can have an affect. The boxplot_age graph shows a fairly similar median age between those that got cancer vs those that did not at around 57yrs old. The mean age of individuals in the study was 57 years old.
+
+cd_plot_yrs_smoke = cdplot(formula = lung_cancer ~ yrsmoke, data = birdkeeping)
+cd_plot_yrs_smoke
+
+boxplot_yrs_smoke = birdkeeping %>% ggplot(mapping = aes(x = lung_cancer, y = yrsmoke)) + geom_boxplot()
+boxplot_yrs_smoke
+
+summary_stats_yrs_smoke = birdkeeping %>% group_by(lung_cancer) %>% summarise(mean = mean(yrsmoke), var = var(yrsmoke), sd = sd(yrsmoke))
+
+-- Interpretations: As would be expected and shown in the cd_plot_yrs_smoke, the more years of smoking increases the probability of obtaining lung cancer. The boxplot_yrs_smoke ollustrates a large difference in the median amount of years smoked between those that got cancer and those that did not. Those with cancer smoked for a median of 36 yrs while those without cancer had a median of 25yrs.  For those that got cancer the mean amount of years smoking was 33.6 while for those that did not get cancer was 24.95 yrs. With SD of 9.89 and 14.84 respectively.
+
+
+cd_plot_cigsday = cdplot(formula = lung_cancer ~ cigsday, data = birdkeeping)
+cd_plot_cigsday
+
+boxplot_cigsday = birdkeeping %>% ggplot(mapping = aes(x = lung_cancer, y = cigsday)) + geom_boxplot()
+boxplot_cigsday
+
+summary_stats_cigsday = birdkeeping %>% group_by(lung_cancer) %>% summarise(mean = mean(cigsday), var = var(cigsday), sd = sd(cigsday))
+
+-- Interpretations: The cd_plot_cigsday provides evidence for what would be considered reasonable, that being that the number of cigarettes one smokes in a day increases their probability of lung cancer. WHat is interesting is the median amount of cigarettes with the difference only being 5 between cancer and no cancer with absolute values of 20 and 15 respectively. The mean number of cigs smoked in a day contributing to cancer is 18 vs 14 in the no cancer case.
+
+# qualitative variables
+
+sex_bar_chart = birdkeeping %>% ggplot(mapping = aes(x = sex, fill = lung_cancer)) + 
+  geom_bar() + scale_fill_brewer(palette = "Spectral")
+sex_bar_chart
+
+sex_cross_tab = birdkeeping %>% group_by(sex, lung_cancer) %>%  
+  tally() %>% pivot_wider(id_cols = sex, names_from = lung_cancer, values_from =  n) %>% 
+  mutate(total_cases = sum(Cancer + No_Cancer), prop_cancer = Cancer/total_cases, prop_no_cancer = No_Cancer/total_cases)
+sex_cross_tab
+
+-- Interpretations: In absolute terms we see that there are more male participants compared to female participants as shown by the bar chart. What is revealed in the proportions table is that the proportions of those with and without cancer are exactly the same regardless of sex.
+
+
+socio_bar_chart = birdkeeping %>% ggplot(mapping = aes(x = socioecon_status, fill = lung_cancer)) + 
+  geom_bar() 
+socio_bar_chart
+
+socio_cross_tab = birdkeeping %>% group_by(socioecon_status, lung_cancer) %>%  
+  tally() %>% pivot_wider(id_cols = socioecon_status, names_from = lung_cancer, values_from =  n) %>% 
+  mutate(total_cases = sum(Cancer + No_Cancer), prop_cancer = Cancer/total_cases, prop_no_cancer = No_Cancer/total_cases)
+socio_cross_tab
+
+-- Interpretations: There are a laerger number of people froma lower socio-economic background that took place in the study and as well a larger proportion of people from a lower socio-economic background have gotten lung cancer. 
+
+keep_bird_bar_chart = birdkeeping %>% ggplot(mapping = aes(x = keep_bird, fill = lung_cancer)) + 
+  geom_bar() 
+keep_bird_bar_chart
+
+keep_bird_cross_tab = birdkeeping %>% group_by(keep_bird, lung_cancer) %>%  
+  tally() %>% pivot_wider(id_cols = keep_bird, names_from = lung_cancer, values_from =  n) %>% 
+  mutate(total_cases = sum(Cancer + No_Cancer), prop_cancer = Cancer/total_cases, prop_no_cancer = No_Cancer/total_cases)
+keep_bird_cross_tab
+
+-- Interpretations: In the bar chart there is a visible difference between individuals who kept a bird and those who did not and whether they got lung cancer. Surprisingly keeping a bird in this data indicates a possible contribution to getting lung cancer. More examination will follow.
+
+
+b) In (a), you should have found no relationship between whether or not a patient develops lung cancer and either their age or sex. Why might this be? What implications will this have on your modeling?
+
+- Possible reasoning for why age and sex don't' affect lung cancer is because lung cancer is more often than not attributed to smoking or activities that will expose your respiratory system to harm. With regards to modelling this would suggest that these variables don't't need to be included in our regression.
+
+c) Based on a two-way table with keeping birds and developing lung cancer from (a), find an unadjusted odds ratio comparing birdkeepers to non-birdkeepers and interpret this odds ratio in context. (Note: an unadjusted odds ratio is found by not controlling for any other variables.) Also, find an analogous relative risk and interpret it in context as well.
+
+keep_bird_cross_tab = keep_bird_cross_tab %>% mutate(odds = prop_cancer/prop_no_cancer)
+
+keep_birds_odds_ratio =  keep_bird_cross_tab[[1,7]]/keep_bird_cross_tab[[2,7]]
+keep_birds_odds_ratio
+[1] 3.882353
+
+- What this odds ratio is implying is that the odds of getting cancer while keeping a bird are almost 4 times higher than the odds of getting cancer while not keeping a bird. 
+
+keep_birds_relative_risk = keep_bird_cross_tab[[1,5]]/keep_bird_cross_tab[[2,5]]
+keep_birds_relative_risk
+[1] 2.462687
+
+- in the case of relative risk individulas had a 146% increase in risk of getting cancer if they kept a bird in comparison to those who did not keep a bird.
+
+d) Are the elogits reasonably linear relating number of years smoked to the estimated log odds of developing lung cancer? Demonstrate with an appropriate plot.
+
+#added odds to socio cross tab
+
+socio_cross_tab = socio_cross_tab %>%  mutate(odds = prop_cancer/prop_no_cancer)
+
+#Create cross table to calculate empirical logits
+
+yrs_smoked_factor_cross_tab = birdkeeping %>%  group_by(years_factor, lung_cancer) %>% tally() %>% 
+  pivot_wider(id_cols = years_factor, names_from = lung_cancer, values_from = n) %>% 
+  mutate(total_cases = sum(Cancer + No_Cancer), prop_cancer = Cancer/total_cases, prop_no_cancer = No_Cancer/total_cases)
+
+yrs_smoked_factor_cross_tab = yrs_smoked_factor_cross_tab %>% mutate(odds = prop_cancer/prop_no_cancer, emp_log = log(odds))
+
+# created elogits
+elogit_yrs_smoked_plot = yrs_smoked_factor_cross_tab %>% ggplot(mapping = aes(x = years_factor, y = emp_log)) + 
+  geom_point() + geom_smooth(method = lm, se = FALSE) + labs(x = "Yrs_Smoked", y = "Emp_Logit")
+elogit_yrs_smoked_plot
+
+
+#alternative version of above but used yrssmoke instead of the years_factor version to be able to apply geom_smooth properly
+# needed to be continuous variable.
+
+yrs_smoked_cross_tab_non_factor = birdkeeping %>%  group_by(yrsmoke, lung_cancer) %>% tally() %>% 
+  pivot_wider(id_cols = yrsmoke, names_from = lung_cancer, values_from = n)  
+ 
+  yrs_smoked_cross_tab_non_factor$Cancer[is.na(yrs_smoked_cross_tab_non_factor$Cancer) == TRUE] = 0
+  yrs_smoked_cross_tab_non_factor$No_Cancer[is.na(yrs_smoked_cross_tab_non_factor$No_Cancer) == TRUE] = 0
+  
+  yrs_smoked_cross_tab_non_factor = yrs_smoked_cross_tab_non_factor %>%  mutate(total_cases = sum(Cancer, No_Cancer))
+ 
+  yrs_smoked_cross_tab_non_factor =  yrs_smoked_cross_tab_non_factor %>% 
+    mutate(prop_cancer = (Cancer + 0.5)/(total_cases+1), prop_no_cancer = (No_Cancer + 0.5)/(total_cases + 1)) # adjusted to have no log(0) values
+  
+  yrs_smoked_cross_tab_non_factor = yrs_smoked_cross_tab_non_factor %>% 
+    mutate(odds = prop_cancer/prop_no_cancer, emp_log = log(odds))
+
+  elogit_yrs_smoked_plot_non_factor = yrs_smoked_cross_tab_non_factor %>% ggplot(mapping = aes(x = yrsmoke, y = emp_log)) + 
+    geom_point() + geom_smooth(method = lm, se = FALSE) + labs(x = "Yrs_Smoked", y = "Emp_Logit")
+  elogit_yrs_smoked_plot_non_factor
+  
+- Conclusion: Using the years_factor only three points were produced and it appears as the relationship is linear, but there isn't' sufficient data in this form to draw a full conclusion. When yrsmoke was used we were able to fit a simulated regression line. Vague amount of linearity was present.
+
+e) Does there appear to be an interaction between number of years smoked and whether the subject keeps a bird? Demonstrate with an interaction plot and a coded scatterplot with empirical logits on the y-axis.
+
+interaction_plot_yrsmoke_keep = birdkeeping %>% ggplot(mapping = aes(x = yrsmoke, y = lung_cancer, color = keep_bird)) +
+   geom_point()
+ interaction_plot_yrsmoke_keep
+ 
+ yrs_smoked_interaction_alt = birdkeeping %>%  group_by(yrsmoke, keep_bird, lung_cancer) %>% tally() %>%
+   pivot_wider(id_cols = c(yrsmoke, keep_bird), names_from = lung_cancer, values_from = n)
+ 
+ yrs_smoked_interaction_alt$Cancer[is.na(yrs_smoked_interaction_alt$Cancer) == TRUE] = 0
+ yrs_smoked_interaction_alt$No_Cancer[is.na(yrs_smoked_interaction_alt$No_Cancer) == TRUE] = 0
+ 
+ yrs_smoked_interaction_alt = yrs_smoked_interaction_alt %>%  mutate(total_cases = sum(Cancer, No_Cancer))
+ 
+ yrs_smoked_interaction_alt =  yrs_smoked_interaction_alt %>%
+   mutate(prop_cancer = (Cancer + 0.5)/(total_cases+1), prop_no_cancer = (No_Cancer + 0.5)/(total_cases + 1)) # adjusted to have no log(0) values
+ 
+ yrs_smoked_interaction_alt = yrs_smoked_interaction_alt %>%
+   mutate(odds = prop_cancer/prop_no_cancer, emp_log = log(odds))
+ 
+ elogit_yrs_smoked_interaction_alt = yrs_smoked_interaction_alt %>% ggplot(mapping = aes(x = yrsmoke, y = emp_log, colour = keep_bird)) +
+   geom_point() + geom_smooth(method = lm, se = FALSE) + labs(x = "Yrs_Smoked", y = "Emp_Logit")
+ elogit_yrs_smoked_interaction_alt
+ 
+ Conclusion: There appears to be an interaction between years smoked and keeping a bird. - Not sure if interpreting or illustrating the interaction correctly though. 
+ 
+
+f) Is there evidence that we can remove age and female from our model? Perform an appropriate test comparing model1 to model2; give a test statistic and p-value, and state a conclusion in context.
+ 
+ > drop_in_deviance_1_2 = anova(model2, model1, test = "Chisq")
+> drop_in_deviance_1_2
+Analysis of Deviance Table
+
+Model 1: lung_cancer ~ yrsmoke + cigsday + socioecon_status + keep_bird
+Model 2: lung_cancer ~ age + yrsmoke + cigsday + sex + socioecon_status + 
+    keep_bird
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+1       142     156.72                     
+2       140     154.20  2   2.5257   0.2828
+
+From this output we see that the p-value for the deviance test statistic is 0.28 or 28%. Indicating that the test statistic has a 28% of occurring in a chi-square distribution with 2 degrees of freedom. Simply this means that our reduced model is sufficient to use for estimation.
+
+g) Is there evidence that the complete second order version of model4 improves its performance? Perform an appropriate test
+comparing model4 to model5; give a test statistic and p-value, and state a conclusion in context.
+
+> drop_in_deviance_4_5 = anova(model4, model5, test = "Chisq")
+> drop_in_deviance_4_5
+Analysis of Deviance Table
+
+Model 1: lung_cancer ~ yrsmoke + keep_bird
+Model 2: lung_cancer ~ yrsmoke + keep_bird + yrsmoke:keep_bird + yrsmoke_sq
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+1       144     158.11                     
+2       142     157.06  2   1.0568   0.5895
+
+From the results we see that the second order version of model4 does not improve performance significantly enough to consider using it as a model.
+
+h) Carefully interpret each of the four model coefficients in model6 in context.
+
+- yrsmoke - a one year increas in yrs smoking implies a 5.4% increas in the odds of getting cancer controlling for all covariates.
+- keep_bird - there is a 325% increase in the odds of getting cancer if an individual keeps a bird, controlling for otehr covariates.
+- yrsmoke:keep_bird - there is a 0.9% increase in the odds of getting cancer when having a bird versus when not keeping a bird.
+- beta_0 - the odds of getting cancer with 0 years of smoking and not keeping a bird decreases by 95%.
+
+
+i) If you replaced yrsmoke everywhere it appears in model6 with a mean-centered version of yrsmoke, tell what would change
+among these elements: the 4 coefficients, the 4 p-values for coefficients, and the residual deviance.
+
+> exp(coef(model6alt))
+                          (Intercept)                    mean_centr_yrsmoke                    keep_birdKeep Bird 
+                            0.2170287                             1.0542430                             4.2138867 
+mean_centr_yrsmoke:keep_birdKeep Bird 
+                            1.0093400 
+							
+- Using a mean centred version of yrsmoke changes the value of the intercept and keep_bird parameter. ALong with those values changing we also see that the intercept and keep_bird parameter both become statistically significant.
+
+j) model4 is a potential final model based on this set of explanatory variables. Find and carefully interpret 95% confidence intervals
+based on profile likelihoods for the coefficients of yrsmoke and bird.
+
+> exp(confint(model4))
+Waiting for profiling to be done...
+                        2.5 %    97.5 %
+(Intercept)        0.01063132 0.1311953
+yrsmoke            1.02757209 1.0982798
+keep_birdKeep Bird 2.05076095 9.7481749
+
+- We can be 95% confident which means that given data and our proposed model, 95% of our intervals will contain the true parameter value of the parameter. In this case it means that there will be between a 2.8% to 9.8% increase in the odds of getting cancer for every year of smoking, controlling for keeping a bird. As well there is between a 205% and 974% increase in the odds of getting cancer if you keep a bird.
+
+k) How does the adjusted odds ratio for birdkeeping from model4 compare with the unadjusted odds ratio you found in (c)? Is birdkeeping associated with a significant increase in the odds of developing lung cancer, even after adjusting for other factors?
+
+The unadjusted odds ratio for keeping a bird and its effects on the odds of getting cancer was 3.882353 from part (c), here the adjusted odds ratio is 4.37344. Birdkeeping is significant with regards to the odds of developing lung cancer even after adjusting for other factors.
+
+l) Use the categorical variable years_factor based on yrsmoke and replace yrsmoke in model4 with your new variable to create
+model4a. First, interpret the coefficient for years_factorOver 25 years in context. Then tell if you prefer model4 with years smoked as a numeric predictor or model4a with years smoked as a categorical predictor, and explain your reasoning.
+
+> exp(coef(model4a))
+              (Intercept)    years_factor1-25 years years_factorOver 25 years        keep_birdKeep Bird 
+               0.02470572                5.42933031               15.64972324                4.39150414 
+
+- in context the interpretation of the years_factorOver25 would be that there is a 1565% increase in the odds of developing lung cancer if you have smoked for 25 plus years.
+
+Based on statistical significance I would prefer using yrsmoke as a continuous numeric instead of a categorical variable. More reasoning after doing some reading indicates that by turning a continuous variable into a factor we lose information that could be used to determine the response. SPlitting up continuous variables is only a good idea if there are sections of flat information. If curvature is present it is suggested to use polynomials where needed.
+
+m) Discuss the scope of inference in this study. Can we generalize our findings beyond the subjects in this study? Can we conclude that
+birdkeeping causes increased odds of developing lung cancer? Do you have other concerns with this study design or the analysis
+you carried out? 
+
+- the scope of inference in this study is restricted to the participants in the study. Due to the participants being randomly assigned based on the treatment, in this case being keeping a bird. We can only infer causuality between the participants in the study. As a result we would conclude that keeping a bird contributes to an increase in the odds of developing lung cancer, but only for study participants. Our findings cannot be generalized to the full population. Concerns of the study which could have effected the results are things such as health of participants (pre-existing conditions, overall health, etc), types of birds, area of residence (close to industrial areas, etc).
+
+n) Read the article that appeared in the British Medical Journal. What similarities and differences do you see between their analyses
+and yours? What are a couple of things you learned from the article that weren’t apparent in the short summary at the beginning of the assignment. 
+
+- other factors such as vitamin C intake were considered as covariates. COnclusions were similar to those found by the study performed in the exercises. The big difference was in the magnitude of the parameters.
+

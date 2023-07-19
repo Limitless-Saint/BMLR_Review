@@ -7,6 +7,7 @@ library(knitr)
 library(pander)
 library(tidyverse)
 library(foreign)
+library(RColorBrewer)
 
 
 set.seed(0)
@@ -48,7 +49,7 @@ total_proportion
 # Compute the empirical logits (added 0.5 to avoid log(0))
 phat <- with(rrHale.df, (YesVotes+.5)/(NumVotes+1))
 
-rrHale.df = rrHale.df %>% select(-logits)
+#rrHale.df = rrHale.df %>% select(-logits)
 rrHale.df$elogit <- log(phat/(1-phat))
 rrHale.df$Greensboro <- ifelse(rrHale.df$community=="Greensboro", "Greensboro", NA)
 
