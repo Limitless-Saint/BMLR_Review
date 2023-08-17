@@ -1,0 +1,18 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.8 - Introduction to Multilevel Models
+
+Notes:
+
+- Be aware of masking when loading various packages. example: dplyr vs MASS
+- creation of ancilliary data sets from original to simplify various visualizations and analysis, i.e EDA.
+- creating a theme object to use throughout for visualizations.
+- grid.arrange() for including multiple graphs 
+- To generate an initial examination of Level Two covariates, we consider a data set with just one observation per subject, since Level Two variables are constant over all performances from the same subject. Then, we can proceed as we did with Level One covariates—using histograms to illustrate the distributions of continuous covariates  and tables to summarize categorical covariates.
+- VarCorr() function - from 'lme4' package - This function calculates the estimated variances, standard deviations, and correlations between the random-effects terms in a mixed-effects model, of class merMod (linear, generalized or nonlinear). The within-group error variance and standard deviation are also calculated.
+- for boxplot graphs, when desire to flip the coordinates, still have to enter data according to the defacto behaviour(x = discrete, y = continuous)
+
+
+Guided Exercises - 1) Music Performance Joy
+
+1) Perform an exploratory data analysis by comparing positive affect (happiness) to Level One and Level Two covariates using
+appropriate graphs. Comment on interesting trends, supporting your comments with appropriate summary statistics.
+

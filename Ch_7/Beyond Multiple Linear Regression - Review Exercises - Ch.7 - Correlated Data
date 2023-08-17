@@ -1,0 +1,49 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.7 - Correlated Data
+
+
+
+Guided Exercises
+
+Exercise 1
+
+a) What values do beta random variables take on?
+- it takes on values within a finite interval. The standard beta distribtuion uses the interval [0,1] to obtain values.
+
+b) What do these values represent for the dams and pups simulation?
+
+These values represent the probabilities of a dam producing a defect in their pup.
+
+c) Do the possible values depend on alpha or beta?
+
+- yes, these are the shape parameters of the distribution.
+
+d) What is a feature of the beta density when alpha = beta?
+
+- distribution is symmetric
+
+e) What happens to the density when alpha != beta?
+
+- asymmetric distribution
+
+f) How does the magnitude of alpha or beta affect the density?
+
+- makes the density steeper
+
+g) How does the difference between alpha and beta affect the density?
+
+- difference between the values makes the distribution more asymmetric. If difference close to 0 distribtuion is more symmetric
+
+h) If you wanted to simulate dams with mostly low probabilities of defects and a few with very high probabilities, how would you
+do it?
+
+- high beta, low alpha
+
+i) If you wanted to simulate dams with mostly high probabilities of defects and a few with very low probabilities, how would you
+do it?
+
+- high alpha, low beta
+
+j) If you wanted to simulate a population of dams where half of the probabilities of defects are very high and half are very low,
+how would you do it?
+
+- alpha and beta both equal and less than 1.

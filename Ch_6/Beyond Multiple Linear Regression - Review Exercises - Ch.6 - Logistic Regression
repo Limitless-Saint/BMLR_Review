@@ -7,10 +7,10 @@ Notes:
 - data prepping, turning objects into factors with labels, use of table() for confirmation
 - filtering on filter(complete.cases(.)) - returns logical vector on cases that are complete
 - use of cut_number() to simplify groupings
-- different ways of applyin gfactors to a model
+- different ways of applying factors to a model
 - multiple models being included in a drop in deviance test - must be nested
 - use of cdplot() - Computes and plots conditional densities describing how the conditional distribution of a categorical variable y changes over a numerical variable x.
-- For Exploratory Data Analysis involving a response variable that is categorical, one cannot just create a scattrpoint plot. The reason is recall that your variable is categoriacal and as a result will only have two postions. So need to be more creative with the types of plots used: cnditional density plots, boxplots are possibilities. When doing logitplots then can do scattrpoints.
+- For Exploratory Data Analysis involving a response variable that is categorical, one cannot just create a scattrpoint plot. The reason is recall that your variable is categoriacal and as a result will only have two postions. So need to be more creative with the types of plots used: conditional density plots, boxplots are possibilities. When doing logitplots then can do scattrpoints.
 - introduction to across() and all_of() in Tidyverse syntax
 - done to convert various columns to factors()
 - note the steps in 4a to create a cross table and proportion table using dplyr, to create the table the order by which you specify the variables in group_by() is pivotal in the behaviour of the operation. Used pivot_longer() the newer version of spread()
