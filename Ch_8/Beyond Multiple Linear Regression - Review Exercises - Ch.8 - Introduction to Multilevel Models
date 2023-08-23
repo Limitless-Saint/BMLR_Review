@@ -16,3 +16,279 @@ Guided Exercises - 1) Music Performance Joy
 1) Perform an exploratory data analysis by comparing positive affect (happiness) to Level One and Level Two covariates using
 appropriate graphs. Comment on interesting trends, supporting your comments with appropriate summary statistics.
 
+[Code is in R script]
+
+Univariate Summeries
+
+Level One Covariates: 
+
+- We see that the Positive Affect response variable appears to be normally distributed amongst the students'' observations when taken as independent observations. When each student is teated as a group and we take their means the distribution still tendes to have a normal appearance except of one middle value, but that may be due to sampling.
+- Got proportions of pefrom_type, memory, audience categorical variables
+
+Level Two Covariates:
+
+We created distributions of each of the 'mpq' values.
+- Got proportions for gender and instrument
+
+Bivariate Summeries
+
+Level One:
+
+- between the three pefrom_type we observe that Large Ensemble has the highest median positive affect. With memory, the Memory choice has a larger median positive affect than by score or unspecified but not by much, and with regards to audience a juried recital evoked the highest median positive affect do audience type.
+
+Level Two:
+
+Categorical: When we examine the effect of gender by taking all observations as independent, there is not much of a difference in the median positive affect between the sexes only a slight improved positive affect for males. In contrast when we take the mean positve affect for each student there tends to be a larger difference between the positve affects witha higher score resulting for males. DOing the same with instrument played, the only notable change is with regards to keyboard players. The mean scores tend to narrow the distribution and all are very concentrated, but the overall affects remain the same with voice as the intrument having the highest positive affect.
+
+Continuous: Between treating each observation as indepensent or taking the mean values for each student, the affect of PEM and NEM on Positive affect are a positive relationship and negative relationship respectively. With regards to Absorbption when each observation is treated as indpendent there is a positve relationship with the Positive Affect, but when we take the means of each student a negative relationship occurs.
+
+
+2) Report estimated fixed effects and variance components from Model A, using proper notation from this chapter (no interpretations required). Also report and interpret an intraclass correlation coefficient.
+
+model.A = lmer(formula = pa ~ 1 + (1|id), REML = TRUE, data = keydata_exer)
+
+summary(model.A)
+Linear mixed model fit by REML ['lmerMod']
+Formula: pa ~ 1 + (1 | id)
+   Data: keydata_exer
+
+REML criterion at convergence: 3340.2
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-3.12392 -0.64454  0.02559  0.64814  2.79434 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ id       (Intercept) 23.72    4.871   
+ Residual             41.70    6.457   
+Number of obs: 497, groups:  id, 37
+
+Fixed effects:
+            Estimate Std. Error t value
+(Intercept)  32.5622     0.8584   37.93
+
+#alternate streamlined version to extract needed parameter estimates:
+
+> VarCorr(model.A)
+ Groups   Name        Std.Dev.
+ id       (Intercept) 4.8705  
+ Residual             6.4574  
+> coef(summary(model.A))
+            Estimate Std. Error  t value
+(Intercept) 32.56219  0.8583999 37.93359
+
+
+intraclass_correlation_A = 23.72/(41.70 + 23.72)
+intraclass_correlation_A
+[1] 0.3625803
+
+Thus 36.3% of total variability in performance affect is attributable to differences among subjects.
+
+3) Report estimated fixed effects and variance components from Model B, using proper notation from this chapter. Interpret your MLE estimates for alpha_0 (the intercept), beta_1 (the instructor indicator), and sigma_u (the Level Two standard deviation for the intercept). Also report and interpret an appropriate pseudo R-squared value.
+
+> model.B = lmer(data = keydata_exer, formula = pa ~ instructor + students + (instructor + students|id) , REML = TRUE)
+boundary (singular) fit: see help('isSingular')
+> summary(model.B)
+Linear mixed model fit by REML ['lmerMod']
+Formula: pa ~ instructor + students + (instructor + students | id)
+   Data: keydata_exer
+
+REML criterion at convergence: 3287.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.5978 -0.6229  0.0190  0.6178  2.6253 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr       
+ id       (Intercept) 20.34    4.509               
+          instructor  11.61    3.407     0.08      
+          students    12.08    3.475    -0.63  0.72
+ Residual             36.39    6.033               
+Number of obs: 497, groups:  id, 37
+
+Fixed effects:
+            Estimate Std. Error t value
+(Intercept)  34.7296     0.8604  40.366
+instructor   -4.1901     0.9271  -4.520
+students     -4.4540     0.9735  -4.575
+
+Correlation of Fixed Effects:
+           (Intr) instrc
+instructor -0.213       
+students   -0.547  0.500
+optimizer (nloptwrap) convergence code: 0 (OK)
+boundary (singular) fit: see help('isSingular')
+
+
+Interpretations: 
+
+alpha_0 - the global average postive affect score between all students is 34.73. 
+beta_1 - the slope of the fixed effect of an instructor is -4.1901 which means that if the audience viewing thw performance is an instructor, the positive affect feeling decreases by 4.1901.
+sigma_u - the std.dev at level two for the intercept is 4.509. This signifies the deviations between students specific intercepts.
+
+pseudo_r_sq_mod_A_B = (41.70 - 36.39)/36.39
+> pseudo_r_sq_mod_A_B
+[1] 0.1459192
+
+- this means roughly that 15% of variability within a group or a students performances specifically can be explained by the addition of the covariates instructor and students.
+
+4) Write out Model C, using both separate Level One and Level Two models as well as a composite model. Be sure to express
+distributions for error terms. How many parameters must be estimated in Model C?
+
+- in rough notebook
+
+5) Report and interpret the following parameter estimates from Model C: alpha_0, alpha_1, gamma_0, beta_1, sigma_u, sigma_v, rho_uv. Interpretations for variance components should be done in terms of standard deviations and correlation coefficients.
+
+> model.C = lmer(data = keydata_exer, formula = pa ~ centred_mpqab + instructor + students + centred_mpqab:instructor + 
++                  centred_mpqab:students + (instructor + students|id), REML = TRUE)
+> summary(model.C)
+Linear mixed model fit by REML ['lmerMod']
+Formula: pa ~ centred_mpqab + instructor + students + centred_mpqab:instructor +  
+    centred_mpqab:students + (instructor + students | id)
+   Data: keydata_exer
+
+REML criterion at convergence: 3286.7
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.6121 -0.5995  0.0180  0.6180  2.6515 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr       
+ id       (Intercept) 20.321   4.508               
+          instructor   8.062   2.839     0.09      
+          students    10.724   3.275    -0.73  0.60
+ Residual             36.487   6.040               
+Number of obs: 497, groups:  id, 37
+
+Fixed effects:
+                         Estimate Std. Error t value
+(Intercept)              34.81792    0.86067  40.454
+centred_mpqab            -0.02279    0.14711  -0.155
+instructor               -4.25216    0.87053  -4.885
+students                 -4.64745    0.94972  -4.894
+centred_mpqab:instructor  0.36914    0.14793   2.495
+centred_mpqab:students    0.29220    0.16313   1.791
+
+Correlation of Fixed Effects:
+             (Intr) cntrd_ instrc stdnts cntrd_mpqb:n
+centrd_mpqb  -0.047                                  
+instructor   -0.229  0.054                           
+students     -0.592  0.047  0.443                    
+cntrd_mpqb:n  0.057 -0.325 -0.020 -0.059             
+cntrd_mpqb:s  0.047 -0.624 -0.057 -0.034  0.519 
+
+interpretations:
+
+- alpha_0 - the global mean of positive affect is 34.82.
+- alpha_1 - an increase of one unit of mpqab from the mpqab mean value will decrease the positive affect score by 0.022. Controlling for the effects from the other covariates.
+- gamma_0 - controlling for all other effects, if the audience viewing the perofromance is students, positive affects decrease by 4.65. 
+- beta_1 - if the audience is instructors, a unit increase in mpqab will increase positive affect by 0.369.
+- sigma_u - standard deviation between group intercept values is 4.51
+- sigma_v - std deviation between groups slopes when instructors are the audience is 2.84
+- rho_uv - the correlation between the intercept and instructor slope term is 0.09
+
+
+6) Report and interpret the same parameter estimates listed above from Model D. In each case, the new interpretation should involve a small modification of your interpretation from Model C. Use underlines or highlights to denote the part of the Model D interpretation that differs from the Model C interpretation.
+
+
+> model.D = lmer(data = keydata_exer, formula = pa ~ centred_mpqab + female + instructor + students + centred_mpqab:instructor + 
++                 female:instructor +  centred_mpqab:students + female:students + (instructor + students|id), REML = TRUE)
+boundary (singular) fit: see help('isSingular')
+> 
+> summary(model.D)
+Linear mixed model fit by REML ['lmerMod']
+Formula: pa ~ centred_mpqab + female + instructor + students + centred_mpqab:instructor +  
+    female:instructor + centred_mpqab:students + female:students +      (instructor + students | id)
+   Data: keydata_exer
+
+REML criterion at convergence: 3272.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.5843 -0.6049  0.0456  0.6159  2.6604 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr       
+ id       (Intercept) 18.53    4.304               
+          instructor   8.19    2.862     0.28      
+          students    10.72    3.274    -0.75  0.43
+ Residual             36.41    6.034               
+Number of obs: 497, groups:  id, 37
+
+Fixed effects:
+                         Estimate Std. Error t value
+(Intercept)              36.97013    1.51156  24.458
+centred_mpqab            -0.05677    0.14278  -0.398
+female                   -3.04967    1.80839  -1.686
+instructor               -5.92707    1.65148  -3.589
+students                 -4.94014    1.68411  -2.933
+centred_mpqab:instructor  0.39935    0.14835   2.692
+female:instructor         2.20751    1.94753   1.133
+centred_mpqab:students    0.29307    0.16477   1.779
+female:students           0.21166    2.05089   0.103
+
+Correlation of Fixed Effects:
+             (Intr) cntrd_ female instrc stdnts cntrd_mpqb:n fml:ns cntrd_mpqb:s
+centrd_mpqb  -0.106                                                             
+female       -0.836  0.095                                                      
+instructor   -0.155  0.091  0.130                                               
+students     -0.610  0.084  0.510  0.351                                        
+cntrd_mpqb:n  0.091 -0.259 -0.071 -0.079 -0.086                                 
+fml:nstrctr   0.133 -0.074 -0.153 -0.849 -0.297  0.082                          
+cntrd_mpqb:s  0.084 -0.629 -0.071 -0.076 -0.155  0.466        0.060             
+feml:stdnts   0.500 -0.069 -0.601 -0.288 -0.828  0.065        0.362  0.167      
+optimizer (nloptwrap) convergence code: 0 (OK)
+boundary (singular) fit: see help('isSingular')
+
+
+Interpretations:
+
+interpretations:
+
+- alpha_0 - global mean of positive affect is 36.97
+- alpha_1 - an increase of one unit of mpqab from the mpqab mean value will decrease the positive affect score by 0.057. Controlling for the effects from the other covariates.
+- gamma_0 - controlling for all other effects, if the audience viewing the perofromance is students, positive affects decrease by 4.94
+- beta_1 - if the audience is instructors, a unit increase in mpqab will increase positive affect by 0.40
+- sigma_u - standard deviation between group intercept values is 4.30
+- sigma_v - std deviation between groups slopes when instructors are the audience is 2.86
+- rho_uv -  the correlation between the intercept and instructor slope term is 0.28
+
+
+7) Also report and interpret the following parameter estimates from Model D: alpha_2, beta_2.
+
+- alpha_2 - if the individual who is performing is a female, their positive affect value decreases by 3.05.
+- beta_2 - if the individual is female and the audience viewing the performance is an instructor, positive affects increase by 2.21, controlling for all other covariates.
+
+8) Use a drop in deviance statistic (likelihood ratio test) to compare Model C vs. Model D. Give a test statistic and p-value, then state
+a conclusion. Also compare Models C and D with appropriate pseudo R-squared value(s) and with AIC and BIC statistics.
+
+> drop_in_dev_C_D = anova(model.D, model.C, test = 'Chiaq')
+refitting model(s) with ML (instead of REML)
+> drop_in_dev_C_D
+Data: keydata_exer
+Models:
+model.C: pa ~ centred_mpqab + instructor + students + centred_mpqab:instructor + centred_mpqab:students + (instructor + students | id)
+model.D: pa ~ centred_mpqab + female + instructor + students + centred_mpqab:instructor + female:instructor + centred_mpqab:students + female:students + (instructor + students | id)
+        npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)
+model.C   13 3310.2 3364.9 -1642.1   3284.2                     
+model.D   16 3310.4 3377.7 -1639.2   3278.4 5.7914  3     0.1222
+
+Conclusion: We observe that the addition of the `female` variable did not bring any significant changes to the precision of the model as illustrated by the similarity in the AIC, BIC, logLik. We also get a p-value of 12% indicating that the probability of 
+getting a test statistic of that value or smaller is 12%. 
+
+> pseudo_r_sq_mod_C_D_u = (20.32 - 18.53)/20.32
+> pseudo_r_sq_mod_C_D_u
+[1] 0.08809055
+> 
+> pseudo_r_sq_mod_C_D_v = (8.062 - 8.19)/8.062
+> pseudo_r_sq_mod_C_D_v
+[1] -0.01587695
+> 
+> pseudo_r_sq_mod_C_D_w = (10.72 - 10.72)/10.72
+> pseudo_r_sq_mod_C_D_w
+[1] 0
+
+If one wants they can interpret the pseudo r-squared for the intercept as a 8.8% increase in the explanation of the variance of the intercept, but caution needs to be exercised. 

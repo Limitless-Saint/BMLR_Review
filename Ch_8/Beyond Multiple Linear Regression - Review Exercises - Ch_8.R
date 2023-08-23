@@ -8,6 +8,7 @@ library(knitr)
 library(kableExtra)
 library(tidyverse)
 
+set.seed(10)
 #NOTE: Since loaded MASS package be aware that select() in dplyr is masked
 
 musicdata = read_csv(file = "C:/Users/Saint/Documents/School_2017_onward/2021-2022/STA303/BMLR_Review/Ch_8/musicdata.csv")
@@ -188,5 +189,78 @@ pa_mpqpem_one_obs = keydata_exer_level_2 %>% ggplot(mapping = aes(x = mpqpem, y 
 pa_mpqnem_one_obs = keydata_exer_level_2 %>% ggplot(mapping = aes(x = mpqnem, y = pa)) + geom_point() + geom_smooth(method = "lm", color = "black") +
   theme.1 + ylab("Positive Affect") + xlab("NEM") + labs(title = "(f)")
 
-pa_continous_level_2 = grid.arrange(pa_mpqab, pa_mpqpem, pa_mpqnem, pa_mpqab_one_obs, pa_mpqpem_one_obs, pa_mpqnem_one_obs)
-pa_continous_level_2
+pa_continous_level_2_ind = grid.arrange(pa_mpqab, pa_mpqpem, pa_mpqnem)
+pa_continous_level_2_single = grid.arrange(pa_mpqab_one_obs, pa_mpqpem_one_obs, pa_mpqnem_one_obs)
+
+pa_continous_level_2_ind
+pa_continous_level_2_single
+
+#part 2
+
+model.A = lmer(formula = pa ~ 1 + (1|id), REML = TRUE, data = keydata_exer)  #Unconditional Means / Random Intercept Model
+summary(model.A)
+
+intraclass_correlation_A = 23.72/(41.70 + 23.72)
+intraclass_correlation_A
+
+# part 3
+
+# Had to create indicators (copied from text)
+
+keydata_exer = keydata_exer %>% mutate(students = ifelse(test = audience=="Student(s)", yes = 1, no = 0),
+                                       instructor = ifelse(test = audience == "Instructor", yes = 1, no = 0),
+                                       juried = ifelse(test = audience=="Juried Recital", yes = 1, no = 0),
+                                       public = ifelse(audience=="Public Performance",1,0),
+                                       solo = ifelse(perform_type=="Solo",1,0),
+                                       memory1 = ifelse(memory=="Memory",1,0),
+                                       female = ifelse(gender=="Female",1,0),
+                                       vocal = ifelse(instrument=="voice",1,0) )
+
+model.B = lmer(data = keydata_exer, formula = pa ~ instructor + students + (instructor + students|id) , REML = TRUE)
+summary(model.B)
+
+
+pseudo_r_sq_mod_A_B = (41.70 - 36.39)/36.39
+pseudo_r_sq_mod_A_B
+
+test_mod = lmer(data = keydata_exer, formula = pa ~  students + (instructor|id) , REML = TRUE)
+summary(test_mod)
+
+test_mod_2 = lmer(data = keydata_exer, formula = pa ~  students + instructor + (instructor|id) , REML = TRUE)
+summary(test_mod_2)
+
+
+# part 4)
+
+#in notebook
+
+# part 5)
+
+keydata_exer = keydata_exer %>% mutate(centred_mpqab = mpqab - mean(mpqab)) # created centred mpqab
+
+model.C = lmer(data = keydata_exer, formula = pa ~ centred_mpqab + instructor + students + centred_mpqab:instructor +
+                 centred_mpqab:students + (instructor + students|id), REML = TRUE)
+summary(model.C)
+
+
+# part 6)
+
+model.D = lmer(data = keydata_exer, formula = pa ~ centred_mpqab + female + instructor + students + centred_mpqab:instructor +
+                female:instructor +  centred_mpqab:students + female:students + (instructor + students|id), REML = TRUE)
+
+summary(model.D)
+
+#part 8)
+
+drop_in_dev_C_D = anova(model.D, model.C, test = 'Chiaq')
+drop_in_dev_C_D
+
+
+pseudo_r_sq_mod_C_D_u = (20.32 - 18.53)/20.32
+pseudo_r_sq_mod_C_D_u
+
+pseudo_r_sq_mod_C_D_v = (8.062 - 8.19)/8.062
+pseudo_r_sq_mod_C_D_v
+
+pseudo_r_sq_mod_C_D_w = (10.72 - 10.72)/10.72
+pseudo_r_sq_mod_C_D_w
