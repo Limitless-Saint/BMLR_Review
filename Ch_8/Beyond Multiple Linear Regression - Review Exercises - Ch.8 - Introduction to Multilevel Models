@@ -1,7 +1,18 @@
-Beyond Multiple Linear Regression - Review Exercises - Ch.8 - Introduction to Multilevel Models
+Beyond Multiple Linear Regression - Review Exercises - Ch.8 - Introduction to Multilevel Models - Linear Mixed Models
 
 Notes:
 
+Linear mixed models assume that:
+1. There is a continuous response variable.
+2. We have modelled the dependency structure correctly (i.e. made correct choices about our random variables).
+3. Our units/subjects are independent, even through observations within each subject are taken not to to be.
+4. Both the random effects and within-unit residual errors follow normal distributions.
+5. The random effects errors and within-unit residual errors have constant variance .
+
+- random effect of subject (each subject gets their own intercept) - extrapolate for other random effects
+- be aware of random interaction effect: (1|v1:v2)
+- lmtest::lrtest will run a likelihood ratio test
+- In EDA make use of faceted plots. Facet on grouping units.
 - Be aware of masking when loading various packages. example: dplyr vs MASS
 - creation of ancilliary data sets from original to simplify various visualizations and analysis, i.e EDA.
 - creating a theme object to use throughout for visualizations.

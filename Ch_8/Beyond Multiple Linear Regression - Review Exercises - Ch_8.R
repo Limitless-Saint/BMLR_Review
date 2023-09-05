@@ -264,3 +264,4 @@ pseudo_r_sq_mod_C_D_v
 
 pseudo_r_sq_mod_C_D_w = (10.72 - 10.72)/10.72
 pseudo_r_sq_mod_C_D_w
+
