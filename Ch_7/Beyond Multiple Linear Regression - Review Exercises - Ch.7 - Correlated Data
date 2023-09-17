@@ -1,6 +1,10 @@
 Beyond Multiple Linear Regression - Review Exercises - Ch.7 - Correlated Data
 
+Notes:
 
+- Correlated data often takes on a multilevel structure. That is, population elements are grouped into aggregates, and we often have information on both the individual elements and the aggregated groups.
+- For instance, students are grouped by teacher, weekly depression measures are grouped by patient, and survey respondents are grouped by household. In these cases, we refer to levels of measurement and observational units at each level. For example, students might represent level-one observational units, while teachers representlevel-two observational units, where level one is the most basic level
+of observation, and level-one observations are aggregated to form level-two observations.
 
 Guided Exercises
 

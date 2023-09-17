@@ -1,0 +1,265 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.9 - Two Level Longitudinal Data
+
+Notes:
+
+- Wide data vs Long Data: - A wide format  each individual entity occupies their own row, and each of their variables occupy a single columnas such values that do not tend to repeat in the first column.
+						  - A long format contains values that do repeat in the first column, allows for multiple rows for each entity and instead records new attributes or observations as a new row in the dataset.
+						  
+- To make this conversion to a LONG format we will have to create a time variable, which under the LONG format is very flexible—each school can have a different number of and differently-spaced time points, and they can even have predictors which vary over time.
+- before we convert our data to LONG form, we should first address problems with missing data.
+- Strategies for Missing Data:
+     - Include only complete data. - possibility of informative missingness
+	 - Last observation carried forward
+	 - Imputation of missing observations
+	 - Multilevel Model
+	 
+- md.pattern() function - Display missing-data patterns - from 'mice' package
+- pay attention to use of and separate_wider_** family of functions with helper regex() to tidy up data, also other tidying practices
+- panel data and longitudinal data[1][2] are both multi-dimensional data involving measurements over time. Panel data is a subset of longitudinal data where observations are for the same subjects each time. - Time series and cross-sectional data can be thought of as special cases of panel data that are in one dimension only (one panel member or individual for the former, one time point for the latter)
+- A longitudinal study (or longitudinal survey, or panel study) is a research design that involves repeated observations of the same variables (e.g., people) over long periods of time (i.e., uses longitudinal data). It is often a type of observational study, although it can also be structured as longitudinal randomized experiment.
+- two level longitudinal sturcture allows for within group examination and between group examination
+- In addition to the initial exploratory analyses above, longitudinal data—multilevel data with time at Level One—calls for further plots and summaries that describe time trends within and across individuals.
+- lattice plots 
+- spaghetti plots, use of LOESS smoother
+- trellis graph
+- slopes and intercepts as summary statistics showing linear trends for level one (within group) behaviour
+- Level Two questions  we can begin to explore these questions by graphically examining the effects of
+group-level variables on groupss’ linear time trends. By group-level variables, we are referring to those covariates that differ by group but are not dependent on time.
+- beyond usually treating variables as continuous, an alternative would be to split into a categorical variable
+- with longitudinal data it is important to investigate the error variance-covariance structure of data collected within a group (the Level Two observational unit).
+- When the data within group is collected over time, we often see distinct patterns in the residuals that can be modeled—correlations which decrease systematically as the time interval increases, variances that change over time, correlation structure that depends on a covariate, etc.
+- we begin model fitting with some simple, preliminary models, in part to establish a baseline for evaluating larger models. Then, we can build toward a final model for inference by attempting to add important covariates, centering certain variables, and checking assumptions.
+- In the multilevel context, we almost always begin with the unconditional means model, in which there are no predictors at any level.
+- The purpose of the unconditional means model is to assess the amount of variation at each level, and to compare variability within group to variability between groups.
+- The second model in most multilevel contexts introduces a covariate at Level One (see Model B in Chapter 8). With longitudinal data, this second model introduces time as a predictor at Level One, but there are still no predictors at Level Two. This model is then called the unconditional growth model. The unconditional growth model allows us to assess how much of the within-group variability can be attributed to systematic changes over time.
+- One alternative is to model the quadratic effect of time, which implies adding terms for both time and the square of time. Typically, to reduce the correlation between the linear and quadratic components of the time effect, the time variable is often centered first.
+- Sometimes the need will emerge if there is not enough data to fit all of our equations we may need to model with fewer variance components.
+- Models like this are frequently used in practice—they allow for a separate overall effect on the response variable for each group, while minimizing parameters that must be estimated. The tradeoff is that this model does not allow linear and quadratic effects to differ by group.
+- Another frequently used approach to modeling time effects is the piecewise linear model. In this model, the complete time span of the study is divided into two or more segments, with a separate slope relating time to the response in each segment.
+- Although we will still be primarily interested in the effect of school type on both 2008 test scores and rate of change in test scores (as we observed in Model C), we can try to improve our estimates of school type effects through the introduction of meaningful covariates. In this study, we are particularly interested in Level Two covariates—those variables which differ by school but which remain basically constant for a given school over time—such as urban or rural location, percentage of special education students, and percentage of students with free and reduced lunch. # Giving idea of other variables to consider while maintaining focus
+- Observe how characterized small decimal changes by multiplying by 10 or 100 to bring to more relatable terms.
+- issue with testing random effects at boundary (near 0 variance) with likelihood ratio test.
+- in such situations parametric bootstrap is used to better approximate the distribution of the likelihood test statistic.
+- recall Likelihood Ratio test uses approximate chi-square distribution for null hypothesis
+- Typically when we conduct hypothesis tests involving variance terms we are testing at the boundary, since we are asking if the variance term is really necessary (i.e., H_0: sigma^2 = 0 vs H_a: sigma^2 > 0). 
+- For fixed effects we are not testing at the boundary and as such continue to use a chi-sq distribution for the likelihood ration test. but you could always check your p-values using a parametric bootstrap approach.
+- Be aware of covariance structure of observations. - involves residuals.
+- When the focus of an analysis is on stochastic parameters (variance components) rather than fixed effects, parameter estimates are typically based on restricted maximum likelihood (REML) methods; model performance statistics then reflect only the stochastic portion of the model. Models with the same fixed effects but different covariance structures can be compared as usual—with AIC and BIC measures when models are not nested and with likelihood ratio tests when models are nested.
+- Rice pg 139-140 for Covariance formulas
+- VERY IMPORTANT: when exploring longitudinal data be aware of being able to use the 'group' aesthetic to analyze time trends. Grouping structure is what to pay attention to (more details in group aesthetic vignette online)
+- created a function to calculate the mode (in part d of exercises) pay attention to use of match and tabulate
+- introduction to reframe() function to be able to apply a complex function to a data set and need a set of read outs for a new data frame
+- also nest_by() is of same family (both come from do() function), this allows one to store lists in each row of a data frame, need to use other functions as well (llok at exercise part e)
+- new modelling package: 'tidymodels'
+- introduction to unnest_wider() and unnest_longer() - possible solutions to help parse data for parts e,f. From 'tidyr' package
+
+Exercises:
+
+Conceptual Exercises:
+
+9) medpctonw = median(chart.wide$schPctnonw)
+
+chart.wide = chart.wide %>% 
+  mutate(highpctnonw = ifelse(test = schPctnonw > medpctonw, yes = "High Pct NonW", no = "Low Pct NonW" ))
+
+chart.wide %>%  ggplot(mapping = aes(x = schPctsped, y = highpctnonw)) + geom_boxplot() + theme.1 + xlab("Percent Special Ed") +
+  ylab("Percent NonW")
+  
+  - interaction would be level two interaction, but don't' see anything "obvious" in the interaction
+  
+Guided Exercises
+  
+Question 1
+
+alcohol = read_csv(file = "C:/Users/Saint/Documents/School_2017_onward/2021-2022/STA303/BMLR_Review/Ch_9/alcohol.csv")
+View(alcohol)
+
+alcohol = alcohol %>% select(2:7) #removed first column
+alcohol = alcohol %>% mutate(ch_alc = ifelse(test = coa == 1, yes = 'Yes', no = "No"),
+                             sex = ifelse(test = male == 1, yes = "Male", no = "Female")) #turned to understandable factors
+
+a)  Identify Level One and Level Two predictors.
+
+- Level One: time(i.e age) 
+- Level Two: coa, sex, peer
+
+b) Perform a quick EDA. What can you say about the shape of alcuse, and the relationship between alcuse and coa, male, and peer? Appeal to plots and summary statistics in making your statements.
+
+table(alcohol$alcuse) #getting idea of how many data points are in each "box" to split histogram better
+
+alcuse_hist1 = alcohol %>% ggplot(mapping = aes(x = alcuse, color = "red")) + geom_histogram(bins = 6)
+alcuse_hist2 = alcohol %>% ggplot(mapping = aes(x = alcuse, color = "red")) + geom_histogram(bins = 7)
+
+alcuse_hist1
+alcuse_hist2
+
+overall_mean_alc_peer = mean(alcohol$peer)
+overall_mean_alcuse = mean(alcohol$alcuse)
+
+individ_alc_use_means = alcohol %>% group_by(id) %>%  dplyr::summarize(mean_alc_3yr_use = mean(alcuse))
+individ_alc_peer_means = alcohol %>% group_by(id) %>%  dplyr::summarize(mean_peer_3yr_use = mean(peer))
+alcohol_indv_means = individ_alc_use_means %>% left_join(y = individ_alc_peer_means, by = 'id') # to merge with alc_means for plotting
+
+
+alcuse_ch_alc_box = alcohol %>% ggplot(mapping = aes(x = ch_alc, y = alcuse)) + geom_boxplot() + theme.1 +
+  xlab("Child of Alc") + ylab("Alcohol Use") + coord_flip()
+alcuse_ch_alc_box
+
+alcuse_sex_box = alcohol %>% ggplot(mapping = aes(x = sex, y = alcuse)) + geom_boxplot() + theme.1 +
+  xlab("Sex") + ylab("Alcohol Use") + coord_flip()
+alcuse_sex_box
+
+alcuse_peer_scat = alcohol_indv_means %>%  ggplot(mapping = aes(x = mean_peer_3yr_use, y = mean_alc_3yr_use)) + geom_point(color = "red") +
+  theme.1 + geom_smooth(se = FALSE, method = 'lm') + xlab("Mean Peer 3yr Use") + ylab("Mean Alc 3yr Use")
+alcuse_peer_scat
+
+-- Interpretations: Looking at the shape of the distribution of alcuse we see that it is right skewed with the majority of participants having little alcholic use. From a boxplot of alcuse vs child of alcoholic there is evidence that being a child of an alcoholic implies that you will use alcohol if we examine the meidans. There does not appear to be a difference in alcohol use between sexes. When looking at the means of alcohol use, the amount of alcohol consumption from a peer does appear to influence the alcohol consumption of the subjects. Mean alcohol use was calculated and is 0.921
+- Late Edit: Using the means of alcuse to create a histogram, the distribution isn't' as right skewed as before, and shows a relatively consistent decrease in counts of subjects consuming more alcohol:
+
+alcuse_means_hist = alcohol_indv_means %>% ggplot(mapping = aes(x = mean_alc_3yr_use, color = 'red')) + geom_histogram(bins = 6)
+alcuse_means_hist
+
+c) Generate a plot as in Figure 9.4 with alcohol use over time for all 82 subjects. Comment.
+
+- there appears to be a variety of subjects who have intercepts greater than 0 meaning consumption of alcohol, as well as a variety of slopes.
+
+d) Generate three spaghetti plots with loess fits similar to Figure 9.7 (one for coa, one for male, and one after creating a binary
+variable from peer). Comment on what you can conclude from each plot.
+
+spaghetti_coa = alcohol %>% ggplot(mapping = aes(x = age, y = alcuse)) + geom_line(mapping = aes(group = id)) + 
+  geom_smooth(mapping = aes(group = 1), method = 'lm', se = FALSE) + facet_wrap(facets = vars(ch_alc))
+spaghetti_coa
+
+spaghetti_sex = alcohol %>% ggplot(mapping = aes(x = age, y = alcuse)) + geom_line(mapping = aes(group = id)) + 
+  geom_smooth(mapping = aes(group = 1), method = 'lm', se = FALSE) + facet_wrap(facets = vars(sex))
+spaghetti_sex
+
+alcohol %>% ggplot(mapping = aes(x = peer), color = 'red') + geom_histogram(bins = 10) # used histogram to get idea how to split into a binary, fiddled w/ number of bins
+
+#the median and mode were also used to find how to split peer
+median(alcohol$peer)
+find_mode <- function(x) {
+  u <- unique(x)
+  tab <- tabulate(match(x, u))
+  u[tab == max(tab)]
+}
+
+find_mode(alcohol$peer)
+
+alcohol = alcohol %>%  mutate(above_mode = ifelse(test = peer > 0.90, yes = 'above', no = 'below'))
+
+spaghetti_peer = alcohol %>% ggplot(mapping = aes(x = age, y = alcuse)) + geom_line(mapping = aes(group = id)) + 
+  geom_smooth(mapping = aes(group = 1), method = 'lm', se = FALSE) + facet_wrap(facets = vars(above_mode))
+spaghetti_peer
+
+-- Interpretations: With regards to if the subject was the child of an alcoholic, there appears to be upward trends of more alcohol consumption by increase in age, but the rate(slope) at which conpsumptio increase appears almost the same between both groups. The intercepts are markedly different where children of non-alcoholics have lower intercepts on trend.
+- In terms of sex, the intercepts between both sexes is not too different, but there is a difference in the rate of alcohol consumption ofer age (slope), where males have a steeper rate than females.
+- When splitting peer alcohol use, the mode was chosen as the splitting point to turn the peer variable into a binary variable. Using this splitting, we observe a large difference in intercepts and in the slopes between 'above' and 'below' the mode respectively. 
+
+e) come back to finish with more tools
+
+Fit a linear trend to the data from each of the 82 subjects using age as the time variable. Generate histograms as in Figure
+9.10 showing the results of these 82 linear regression lines, and generate pairs of boxplots as in Figure 9.12 for coa and male.
+No commentary necessary. [Hint: to produce Figure 9.12, you will need a data frame with one observation per subject.]
+
+f) finish in conjunction with part e
+
+
+g) finish in conjunction with part e
+
+h) (Model A) Run an unconditional means model. Report and interpret the intraclass correlation coefficient.
+
+model.A = lmer(formula = alcuse ~ 1 + (1|id), REML = TRUE, data = alcohol)
+summary(model.A)
+
+print(VarCorr(model.A), comp=c("Variance","Std.Dev"))
+ Groups   Name        Variance Std.Dev.
+ id       (Intercept) 0.57313  0.75706 
+ Residual             0.56175  0.74950 
+ 
+ > intrclass.coor.A = 0.57313/(0.57313+0.56175)
+> intrclass.coor.A
+[1] 0.5050137
+
+- This means that 50% of variation in alcuse is attributable simple to differences among subjects(kids,parents) than changes over time within a family.
+
+i) (Model B) Run an unconditional growth model with age14 as the time variable at Level One. Report and interpret estimated
+fixed effects, using proper notation. Also report and interpret a pseudo R-squared value.
+
+summary(model.B)
+Linear mixed model fit by REML ['lmerMod']
+Formula: alcuse ~ age_relevel + (age_relevel | id)
+   Data: alcohol
+
+REML criterion at convergence: 643.2
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.48287 -0.37933 -0.07858  0.38876  2.49284 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr 
+ id       (Intercept) 0.6355   0.7972        
+          age_relevel 0.1552   0.3939   -0.23
+ Residual             0.3373   0.5808        
+Number of obs: 246, groups:  id, 82
+
+Fixed effects:
+            Estimate Std. Error t value
+(Intercept)  0.65130    0.10573   6.160
+age_relevel  0.27065    0.06284   4.307
+
+> pseudo_R_squared_a_b = (0.56175 - 0.3373)/0.56175
+> pseudo_R_squared_a_b
+[1] 0.399555
+
+-- Interpretation:
+
+the mean level of alcuse starting at the age of 14 for all subjects is 0.65,  alcuse increases at a rate of 0.27 over every year of the study. Within subject varaince decreased by 0.3995, which means almost 40% of within group (i.e child) variability in alcuse can be explained by a linear increase over time.
+
+j) (Model C) Build upon the unconditional growth model by adding the effects of having an alcoholic parent and peer alcohol use in
+both Level Two equations. Report and interpret all estimated fixed effects, using proper notation.
+
+> summary(model.C)
+Linear mixed model fit by REML ['lmerMod']
+Formula: alcuse ~ age_relevel + coa + peer + coa:age_relevel + peer:age_relevel +      (age_relevel | id)
+   Data: alcohol
+
+REML criterion at convergence: 606
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.59995 -0.40449 -0.07485  0.44320  2.25950 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr 
+ id       (Intercept) 0.2607   0.5106        
+          age_relevel 0.1508   0.3883   -0.06
+ Residual             0.3373   0.5808        
+Number of obs: 246, groups:  id, 82
+
+Fixed effects:
+                 Estimate Std. Error t value
+(Intercept)      -0.31651    0.15085  -2.098
+age_relevel       0.42943    0.11583   3.707
+coa               0.57917    0.16554   3.499
+peer              0.69430    0.11363   6.110
+age_relevel:coa  -0.01403    0.12711  -0.110
+age_relevel:peer -0.14982    0.08725  -1.717
+
+Correlation of Fixed Effects:
+            (Intr) ag_rlv coa    peer   ag_rlvl:c
+age_relevel -0.436                               
+coa         -0.371  0.162                        
+peer        -0.686  0.299 -0.162                 
+age_relvl:c  0.162 -0.371 -0.436  0.071          
+age_rlvl:pr  0.299 -0.686  0.071 -0.436 -0.162
+
+k) (Model D) Remove the child of an alcoholic indicator variable as a predictor of slope in Model C (it will still be a predictor of
+intercept). Write out Model D as both a two-level and a composite model using proper notation (including error distributions);
+how many parameters (fixed effects and variance components) must be estimated? Compare Model D to Model C using an appropriate method and state a conclusion. 
+
+- Equation done in notebook: - variance components: sigma_v, sigma_u, sigma, correlation
+							 - fixed effects: intercept, age_relevel, coa, peer, age_relevel:peer 
+
+- to compare models will have to use a parametric bootstrap, not going to do presently due to time constraints (will return to do)

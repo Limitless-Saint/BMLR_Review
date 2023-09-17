@@ -1,0 +1,35 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.11 - Multilevel Generalized Linear Models
+
+- glmer() function from the lme4 package in R extends the lmer() function to handle generalized responses and to account for the fact
+that observations are not independent within groups.
+- using the random effects as a way to account for covariates that may have lot's of indicator options.
+- nested random effects VS crossed random effects
+- notation instruction
+- statement of different froms of GLMM. 
+- comparing various models through paramteric bootsraps and how to specify them
+- we account for correlation in order to provide awareness around how accurate our parameter measurements are by taking into account all possible factors that may afect our estimates.
+
+- the difference between crossed and nested random effects: (full explanation on Stats Exchange bookmark
+	- Nested random effects occur when a lower level factor appears only within a particular level of an upper level factor. 
+	- Crossed random effects means that a given factor appears in more than one level of the upper level factor. 
+	
+- Nesting is a property of the data, or rather the experimental design, not the model.
+- IMPORTANT: it is not possible to know, just by inspecting the data, whether we have nested or crossed random effects. This can only be determined with knowledge of the data and the experimental design.
+
+Conceptual Questions:
+
+15) In the interpretation of ˆμ0, verify the odds increases of 29.6% for shooting fouls and 43.6% for offensive fouls. Where does the stated
+10.9% increase factor in?
+
+x = exp(-0.171469 + -0.008747*10 )
+> 1/x
+[1] 1.295555
+> w = exp(-0.171469 + -0.008747*10 + -0.103574)
+> 1/w
+[1] 1.436936
+
+> y = exp(-0.103574)
+> 1/y
+[1] 1.109128
+
+- It is IMPORTANT to keep note of what effect you are examining and as a result what variables are being controlled for versus are not. In the case of x,w we were examining the effect that a certain time interval, the type of foul, and a change of 1 fould differential had on the percentage of fouls called. While in the case of y, we were concerned exclusively with what effect the type of fould had on the percentage of fouls called. Also rememebr difference between ODDS and ODDS Ratio(all the linear effects outside of the intercept)

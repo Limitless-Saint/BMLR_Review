@@ -1,0 +1,46 @@
+Beyond Multiple Linear Regression - Review Exercises - Ch.10 - Multilevel Data With More Than Two Levels
+
+Notes:
+
+- more than two levels requires thinking about how the observational units can be decomposed as well as how the data is structured
+- centering variables to get them to be less correlated for intercepts and slopes. Improves stability of model.
+- when time is level one variable, pay attention for variance-covariance structure of observations. - increases or decreases in correlation over time?
+- The structure and notation for three level models will closely resemble the
+structure and notation for two-level models, just with extra subscripts. However, the number of variance component
+parameters to estimate can quickly mushroom as covariates are added at lower levels, so implementing simplifying restrictions will often becom necessary.
+- Be mindful of higher level of partioning of variances between all levels.
+- The level we choose to use our explanatory covariates could contribute to "explainaing" the variability at that level of our model.
+- isn't' necessary that there are covariates at all levels of model.
+- Idea of boundary constraint and notion of variances alwasy greater than 0. Also constrained vs unconstrained searces of MLE's'
+- What should you do if you encounter boundary constraints? Often, boundaryconstraints signal that your model needs to be reparameterized, i.e., you should alter your model to feature different parameters or ones that are interpreted differently. This can be accomplished in several ways:
+	• remove parameters, especially those variance and correlation terms which
+      are being estimated on their boundaries.
+    • fix the values of certain parameters; for instance, you could set two variance
+      terms equal to each other, thereby reducing the number of unknown
+      parameters to estimate by one.
+	• transform covariates. Centering variables, standardizing variables, or changing
+      units can all help stabilize a model. Numerical procedures for searching for
+	  and finding maximum likelihood estimates can encounter difficulties when
+	  variables have very high or low values, extreme ranges, outliers, or are highly
+	  correlated.  
+	  
+- Although it is worthwhile attempting to reparameterize models to remove boundary constraints, sometimes they can be tolerated if (a) you are not interested in estimates of those parameters encountering boundary issues, and (b) removing those parameters does not affect conclusions about parameters of interest.
+- when it is possible to remove boundary constraints through reasonable model reparameterizations, that is typically the preferred route.
+- As multilevel models grow to include three or more levels, the addition of just a few covariates at lower levels can lead to a huge increase in the number of parameters (fixed effects and variance components) that must be estimated throughout the model.
+- What can be done to make fitting a higher-level model more manageable?
+	• Reduce the number of variance components by assuming all error terms to
+	  be independent; that is, set all correlation terms to 0.
+	• Reduce the number of variance components by removing error terms from
+	  certain Levels Two and Three equations. Often, researchers will begin with a
+	  random intercepts model, in which only the first equation at Level Two
+	  and Three has an error term.
+	• Reduce the number of fixed effects by removing interaction terms that are
+      not expected to be meaningful. Interaction terms between covariates at
+	  different levels can be eliminated simply by reducing the number of terms
+	  in certain equations at Levels Two and Three. There is no requirement that
+	  all equations at a certain level contain the same set of predictors.
+	  
+- Three-way interactions show that the size of an interaction between two predictors differs depending on the level of a third predictor.
+- In order to assess the implied covariance structure from our standard model, we must first derive variance and covariance terms for related observations (i.e., same timepoint and same plant, different timepoints but same plant, different plants but same pot). Each derivation will rely on the random effects portion of the composite model, since there is no variability associated with fixed effects. (book example)
+- limitations of using R - end of chapter
+

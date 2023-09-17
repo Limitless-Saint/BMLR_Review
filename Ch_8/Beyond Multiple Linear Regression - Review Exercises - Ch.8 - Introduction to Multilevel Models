@@ -9,6 +9,7 @@ Linear mixed models assume that:
 4. Both the random effects and within-unit residual errors follow normal distributions.
 5. The random effects errors and within-unit residual errors have constant variance .
 
+- The “level” signifies the position of a unit of observation within the hierarchy
 - random effect of subject (each subject gets their own intercept) - extrapolate for other random effects
 - be aware of random interaction effect: (1|v1:v2)
 - lmtest::lrtest will run a likelihood ratio test
